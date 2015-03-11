@@ -11,9 +11,9 @@ variable "aws_region" {
   default = "eu-west-1" # Ireland is default
 }
 
-# Ubuntu Server 14.04 LTS (PV), SSD Volume Type - ami-84562dec
-# Ubuntu Server 14.04 LTS (PV),EBS General Purpose (SSD) Volume Type. Support available from Canonical (http://www.ubuntu.com/cloud/services).
-# Root device type: ebs Virtualization type: paravirtual
+# Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-9a562df2
+# Ubuntu Server 14.04 LTS (HVM), EBS General Purpose (SSD) Volume Type. Support available from Canonical (http://www.ubuntu.com/cloud/services).
+# Root device type: ebs Virtualization type: hvm
 variable "aws_ami" {
-  default = "ami-84562dec"
+  default = "ami-9a562df2"
 }
