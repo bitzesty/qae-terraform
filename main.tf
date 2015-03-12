@@ -151,24 +151,24 @@ resource "aws_db_subnet_group" "default" {
   subnet_ids = ["subnet-729a212b", "subnet-cf551af5", "subnet-1797373c"]
 }
 
-# # Creating RDS instance
-# resource "aws_db_instance" "default" {
-#   identifier = "qaestagingrds"
-#   allocated_storage = 5
-#   storage_type = "gp2" # (general purpose SSD)
-#   multi_az = true
-#   engine = "postgres"
-#   engine_version = "9.3.5"
-#   instance_class = "db.t2.micro"
-#   name = "qae"
-#   username = "qae"
-#   password = "AKIAJAM6U4DHONV2KYQA"
-#   vpc_security_group_ids = ["${aws_security_group.db_security_group.id}"]
-#   db_subnet_group_name = "${aws_db_subnet_group.default.id}"
-#   parameter_group_name = "default.postgres9.3"
+# Creating RDS instance
+resource "aws_db_instance" "default" {
+  identifier = "qaestagingrds"
+  allocated_storage = 5
+  storage_type = "gp2" # (general purpose SSD)
+  multi_az = true
+  engine = "postgres"
+  engine_version = "9.3.5"
+  instance_class = "db.t2.micro"
+  name = "qae"
+  username = "qae"
+  password = "AKIAJAM6U4DHONV2KYQA"
+  vpc_security_group_ids = ["${aws_security_group.db_security_group.id}"]
+  db_subnet_group_name = "${aws_db_subnet_group.default.id}"
+  parameter_group_name = "default.postgres9.3"
 
-#   # storage_encrypted = true # Uncomment for prod environment
-# }
+  # storage_encrypted = true # Uncomment for prod environment
+}
 
 # Create Launch Configuration
 resource "aws_launch_configuration" "launch_configuration" {
