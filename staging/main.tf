@@ -5,9 +5,9 @@ provider "aws" {
 }
 
 # Our security group to access the instances over SSH and HTTP/ HTTPS
-resource "aws_security_group" "security_group" {
-  name = "WebServerSG"
-  description = "Allow HTTP, HTTPS and SSH inbound traffic from anythere and allow all outbound traffic"
+resource "aws_security_group" "staging_web_security_group" {
+  name = "StagingWebServerSG"
+  description = "Allow HTTP, HTTPS and SSH inbound traffic from anythere and allow all outbound traffic (STAGING)"
 
   # HTTP access from anywhere
   ingress {
@@ -35,24 +35,24 @@ resource "aws_security_group" "security_group" {
 }
 
 # Our db security group to allow access to RDS for EC-2 instances
-resource "aws_security_group" "db_security_group" {
-  name = "DBServerSG"
-  description = "Allow access to RDS for EC-2 instances"
+resource "aws_security_group" "staging_db_security_group" {
+  name = "StagingDBServerSG"
+  description = "Allow access to RDS for EC-2 instances (STAGING)"
 
   # POSTGRESQL access from EC-2 instances
   ingress {
     from_port = 5432
     to_port = 5432
     protocol = "tcp"
-    security_groups = ["${aws_security_group.security_group.id}"]
+    security_groups = ["${aws_security_group.staging_web_security_group.id}"]
   }
 }
 
-resource "aws_elb" "load_balancer" {
-  name = "ProductionLoadBalancer"
+resource "aws_elb" "staging_load_balancer" {
+  name = "StagingLoadBalancer"
 
   availability_zones = ["us-east-1a", "us-east-1e", "us-east-1c"]
-  security_groups = ["${aws_security_group.security_group.id}"]
+  security_groups = ["${aws_security_group.staging_web_security_group.id}"]
 
   listener {
     instance_port = 80
@@ -72,11 +72,12 @@ resource "aws_elb" "load_balancer" {
   # }
 
   # The instances are registered automatically
-  instances = ["${aws_instance.us_east_1a_instance.id}", "${aws_instance.us_east_1e_instance.id}"]
+  instances = ["${aws_instance.staging_us_east_1a_instance.id}", "${aws_instance.staging_us_east_1e_instance.id}"]
 }
 
-resource "aws_instance" "us_east_1a_instance" {
+resource "aws_instance" "staging_us_east_1a_instance" {
   availability_zone = "us-east-1a"
+  count = 1
 
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
@@ -88,14 +89,14 @@ resource "aws_instance" "us_east_1a_instance" {
     key_file = "${var.key_path}"
   }
 
-  instance_type = "m3.medium"
+  instance_type = "${var.ec2_instance_type}"
   ami = "${var.aws_ami}"
 
   # The name of our SSH keypair we created via aws cli
   key_name = "${var.key_name}"
 
   # Our Security group to allow HTTP and SSH access
-  security_groups = ["${aws_security_group.security_group.name}"]
+  security_groups = ["${aws_security_group.staging_web_security_group.name}"]
 
   # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
@@ -109,8 +110,9 @@ resource "aws_instance" "us_east_1a_instance" {
   }
 }
 
-resource "aws_instance" "us_east_1e_instance" {
+resource "aws_instance" "staging_us_east_1e_instance" {
   availability_zone = "us-east-1e"
+  count = 1
 
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
@@ -122,14 +124,14 @@ resource "aws_instance" "us_east_1e_instance" {
     key_file = "${var.key_path}"
   }
 
-  instance_type = "m3.medium"
+  instance_type = "${var.ec2_instance_type}"
   ami = "${var.aws_ami}"
 
   # The name of our SSH keypair we created via aws cli
   key_name = "${var.key_name}"
 
   # Our Security group to allow HTTP and SSH access
-  security_groups = ["${aws_security_group.security_group.name}"]
+  security_groups = ["${aws_security_group.staging_web_security_group.name}"]
 
   # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
@@ -144,46 +146,46 @@ resource "aws_instance" "us_east_1e_instance" {
 }
 
 # Preparing RDS Subnet Group
-resource "aws_db_subnet_group" "default" {
-  name = "main"
-  description = "Our main group of subnets"
+resource "aws_db_subnet_group" "staging_db_subnet_group" {
+  name = "staging_db_subnet_group"
+  description = "Staging RDS group of subnets"
   # us-east-1a, us-east-1e, us-east-1c
   subnet_ids = ["subnet-729a212b", "subnet-cf551af5", "subnet-1797373c"]
 }
 
 # Creating RDS instance
-resource "aws_db_instance" "default" {
-  identifier = "qaestagingrds"
-  allocated_storage = 5
-  storage_type = "gp2" # (general purpose SSD)
-  multi_az = true
-  engine = "postgres"
-  engine_version = "9.3.5"
-  instance_class = "db.t2.micro"
-  name = "qae"
-  username = "qae"
-  password = "AKIAJAM6U4DHONV2KYQA"
-  vpc_security_group_ids = ["${aws_security_group.db_security_group.id}"]
-  db_subnet_group_name = "${aws_db_subnet_group.default.id}"
-  parameter_group_name = "default.postgres9.3"
+# resource "aws_db_instance" "staging_rds_instance" {
+#   identifier = "staging_rds_instance"
+#   allocated_storage = 5
+#   storage_type = "gp2" # (general purpose SSD)
+#   multi_az = true
+#   engine = "postgres"
+#   engine_version = "9.3.5"
+#   instance_class = "db.t2.micro"
+#   name = "qae"
+#   username = "qae"
+#   password = "${var.postgres_password}"
+#   vpc_security_group_ids = ["${aws_security_group.staging_db_security_group.id}"]
+#   db_subnet_group_name = "${aws_db_subnet_group.staging_db_subnet_group.id}"
+#   parameter_group_name = "default.postgres9.3"
 
-  # storage_encrypted = true # Uncomment for prod environment
-}
+#   # storage_encrypted = true # Uncomment for prod environment
+# }
 
 # Create Launch Configuration
-resource "aws_launch_configuration" "launch_configuration" {
-  name = "launch_configuration"
+resource "aws_launch_configuration" "staging_launch_configuration" {
+  name = "staging_launch_configuration"
   image_id = "${var.aws_ami}" # TODO: replace with smth else
-  instance_type = "m3.medium"
-  security_groups = ["${aws_security_group.security_group.name}"]
+  instance_type = "${var.ec2_instance_type}"
+  security_groups = ["${aws_security_group.staging_web_security_group.name}"]
 
   # The name of our SSH keypair we created via aws cli
   key_name = "${var.key_name}"
 }
 
 #  Configure Auto Scaling group
-resource "aws_autoscaling_group" "autoscaling_group" {
-  name = "autoscaling_group"
+resource "aws_autoscaling_group" "staging_autoscaling_group" {
+  name = "staging_autoscaling_group"
   availability_zones = ["us-east-1a", "us-east-1e", "us-east-1c"]
   max_size = 3
   min_size = 2
@@ -191,12 +193,12 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   health_check_type = "ELB"
   desired_capacity = 2
   force_delete = true
-  launch_configuration = "${aws_launch_configuration.launch_configuration.id}"
-  load_balancers = ["${aws_elb.load_balancer.name}"]
+  launch_configuration = "${aws_launch_configuration.staging_launch_configuration.id}"
+  load_balancers = ["${aws_elb.staging_load_balancer.name}"]
 }
 
 # Create S3 private bucket
-resource "aws_s3_bucket" "b" {
-  bucket = "qaestagingbucket"
+resource "aws_s3_bucket" "staging_aws_bucket" {
+  bucket = "staginguploadsbucket"
   acl = "private"
 }

@@ -17,3 +17,7 @@ variable "aws_region" {
 variable "aws_ami" {
   default = "ami-9a562df2"
 }
+variable "postgres_password" {}
+variable "ec2_instance_type" {
+  default = "m3.medium"
+}
