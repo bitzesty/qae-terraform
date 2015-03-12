@@ -51,9 +51,7 @@ resource "aws_security_group" "db_security_group" {
 resource "aws_elb" "load_balancer" {
   name = "ProductionLoadBalancer"
 
-  # us-east-1a, us-east-1e, us-east-1c
-  subnets = ["subnet-729a212b", "subnet-cf551af5", "subnet-1797373c"]
-
+  availability_zones = ["us-east-1a", "us-east-1e", "us-east-1c"]
   security_groups = ["${aws_security_group.security_group.id}"]
 
   listener {
@@ -81,8 +79,7 @@ resource "aws_instance" "us_east_1a_instance" {
   # ebs_optimized: (Optional) If true, the launched EC2 instance will be EBS-optimized.
   ebs_optimized = true
 
-  # subnet-729a212b(172.31.16.0/20) | Default in us-east-1a
-  subnet_id = "subnet-729a212b"
+  availability_zone = "us-east-1a"
 
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
@@ -94,7 +91,7 @@ resource "aws_instance" "us_east_1a_instance" {
     key_file = "${var.key_path}"
   }
 
-  instance_type = "t1.micro"
+  instance_type = "m3.medium"
   ami = "${var.aws_ami}"
 
   # The name of our SSH keypair we created via aws cli
@@ -119,8 +116,7 @@ resource "aws_instance" "us_east_1e_instance" {
   # ebs_optimized: (Optional) If true, the launched EC2 instance will be EBS-optimized.
   ebs_optimized = true
 
-  # subnet-cf551af5(172.31.0.0/20) | Default in us-east-1e
-  subnet_id = "subnet-cf551af5"
+  availability_zone = "us-east-1e"
 
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
@@ -132,7 +128,7 @@ resource "aws_instance" "us_east_1e_instance" {
     key_file = "${var.key_path}"
   }
 
-  instance_type = "t1.micro"
+  instance_type = "m3.medium"
   ami = "${var.aws_ami}"
 
   # The name of our SSH keypair we created via aws cli
@@ -163,18 +159,45 @@ resource "aws_db_subnet_group" "default" {
 
 # Creating RDS instance
 resource "aws_db_instance" "default" {
-  identifier = "qaeprodpostgresrds"
+  identifier = "qaestagingrds"
   allocated_storage = 5
   storage_type = "gp2" # (general purpose SSD)
-  # storage_encrypted = true # Uncomment for prod environment
   multi_az = true
   engine = "postgres"
   engine_version = "9.3.5"
-  instance_class = "db.t1.micro"
-  name = "qaestaging"
-  username = "qaestaging"
+  instance_class = "db.t2.micro"
+  name = "qae"
+  username = "qae"
   password = "AKIAJAM6U4DHONV2KYQA"
   vpc_security_group_ids = ["${aws_security_group.db_security_group.id}"]
   db_subnet_group_name = "${aws_db_subnet_group.default.id}"
   parameter_group_name = "default.postgres9.3"
+
+  # storage_encrypted = true # Uncomment for prod environment
+}
+
+# Create Launch Configuration
+resource "aws_launch_configuration" "launch_configuration" {
+  name = "launch_configuration"
+  image_id = "${var.aws_ami}" # TODO: replace with smth else
+  instance_type = "m3.medium"
+  security_groups = ["${aws_security_group.security_group.id}"]
+  associate_public_ip_address = true
+
+  # The name of our SSH keypair we created via aws cli
+  key_name = "${var.key_name}"
+}
+
+#  Configure Auto Scaling group
+resource "aws_autoscaling_group" "autoscaling_group" {
+  name = "autoscaling_group"
+  availability_zones = ["us-east-1a", "us-east-1e", "us-east-1c"]
+  max_size = 3
+  min_size = 2
+  health_check_grace_period = 300
+  health_check_type = "ELB"
+  desired_capacity = 2
+  force_delete = true
+  launch_configuration = "${aws_launch_configuration.launch_configuration.id}"
+  load_balancers = ["${aws_elb.load_balancer.name}"]
 }
