@@ -70,79 +70,6 @@ resource "aws_elb" "staging_load_balancer" {
   #   lb_protocol = "https"
   #   ssl_certificate_id = "www.qae.co.uk"
   # }
-
-  # The instances are registered automatically
-  instances = ["${aws_instance.staging_us_east_1a_instance.id}", "${aws_instance.staging_us_east_1e_instance.id}"]
-}
-
-resource "aws_instance" "staging_us_east_1a_instance" {
-  availability_zone = "us-east-1a"
-  count = 1
-
-  # The connection block tells our provisioner how to
-  # communicate with the resource (instance)
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-
-    # The path to your keyfile
-    key_file = "${var.key_path}"
-  }
-
-  instance_type = "${var.ec2_instance_type}"
-  ami = "${var.aws_ami}"
-
-  # The name of our SSH keypair we created via aws cli
-  key_name = "${var.key_name}"
-
-  # Our Security group to allow HTTP and SSH access
-  security_groups = ["${aws_security_group.staging_web_security_group.name}"]
-
-  # We run a remote provisioner on the instance after creating it.
-  # In this case, we just install nginx and start it. By default,
-  # this should be on port 80
-  provisioner "remote-exec" {
-    inline = [
-        "sudo apt-get -y update",
-        "sudo apt-get -y install nginx",
-        "sudo service nginx start"
-    ]
-  }
-}
-
-resource "aws_instance" "staging_us_east_1e_instance" {
-  availability_zone = "us-east-1e"
-  count = 1
-
-  # The connection block tells our provisioner how to
-  # communicate with the resource (instance)
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-
-    # The path to your keyfile
-    key_file = "${var.key_path}"
-  }
-
-  instance_type = "${var.ec2_instance_type}"
-  ami = "${var.aws_ami}"
-
-  # The name of our SSH keypair we created via aws cli
-  key_name = "${var.key_name}"
-
-  # Our Security group to allow HTTP and SSH access
-  security_groups = ["${aws_security_group.staging_web_security_group.name}"]
-
-  # We run a remote provisioner on the instance after creating it.
-  # In this case, we just install nginx and start it. By default,
-  # this should be on port 80
-  provisioner "remote-exec" {
-    inline = [
-        "sudo apt-get -y update",
-        "sudo apt-get -y install nginx",
-        "sudo service nginx start"
-    ]
-  }
 }
 
 # Preparing RDS Subnet Group
@@ -154,23 +81,23 @@ resource "aws_db_subnet_group" "staging_db_subnet_group" {
 }
 
 # Creating RDS instance
-# resource "aws_db_instance" "staging_rds_instance" {
-#   identifier = "staging_rds_instance"
-#   allocated_storage = 5
-#   storage_type = "gp2" # (general purpose SSD)
-#   multi_az = true
-#   engine = "postgres"
-#   engine_version = "9.3.5"
-#   instance_class = "db.t2.micro"
-#   name = "qae"
-#   username = "qae"
-#   password = "${var.postgres_password}"
-#   vpc_security_group_ids = ["${aws_security_group.staging_db_security_group.id}"]
-#   db_subnet_group_name = "${aws_db_subnet_group.staging_db_subnet_group.id}"
-#   parameter_group_name = "default.postgres9.3"
+resource "aws_db_instance" "staging_rds_instance" {
+  identifier = "stagingrdsinstance"
+  allocated_storage = 5
+  storage_type = "gp2" # (general purpose SSD)
+  multi_az = true
+  engine = "postgres"
+  engine_version = "9.3.5"
+  instance_class = "db.t2.micro"
+  name = "qae"
+  username = "qae"
+  password = "${var.postgres_password}"
+  vpc_security_group_ids = ["${aws_security_group.staging_db_security_group.id}"]
+  db_subnet_group_name = "${aws_db_subnet_group.staging_db_subnet_group.id}"
+  parameter_group_name = "default.postgres9.3"
 
-#   # storage_encrypted = true # Uncomment for prod environment
-# }
+  # storage_encrypted = true # Uncomment for prod environment
+}
 
 # Create Launch Configuration
 resource "aws_launch_configuration" "staging_launch_configuration" {

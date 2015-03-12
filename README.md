@@ -94,8 +94,6 @@ The output above is truncated, but Terraform did a few things for us here:
 - Printed the ELB public DNS address in the Outputs section
 - Saved the state of your infrastructure in a terraform.tfstate file
 
-You should be able to open the ELB public address in a web browser and see "Welcome to Nginx!" (note: this may take a minute or two after initialization in order for the ELB health check to pass).
-
 #### 9) Review Infrastructure
 ```
 $ terraform show
