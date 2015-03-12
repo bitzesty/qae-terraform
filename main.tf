@@ -76,9 +76,6 @@ resource "aws_elb" "load_balancer" {
 }
 
 resource "aws_instance" "us_east_1a_instance" {
-  # ebs_optimized: (Optional) If true, the launched EC2 instance will be EBS-optimized.
-  ebs_optimized = true
-
   availability_zone = "us-east-1a"
 
   # The connection block tells our provisioner how to
@@ -98,7 +95,7 @@ resource "aws_instance" "us_east_1a_instance" {
   key_name = "${var.key_name}"
 
   # Our Security group to allow HTTP and SSH access
-  vpc_security_group_ids = ["${aws_security_group.security_group.id}"]
+  security_groups = ["${aws_security_group.security_group.name}"]
 
   # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
@@ -113,9 +110,6 @@ resource "aws_instance" "us_east_1a_instance" {
 }
 
 resource "aws_instance" "us_east_1e_instance" {
-  # ebs_optimized: (Optional) If true, the launched EC2 instance will be EBS-optimized.
-  ebs_optimized = true
-
   availability_zone = "us-east-1e"
 
   # The connection block tells our provisioner how to
@@ -135,7 +129,7 @@ resource "aws_instance" "us_east_1e_instance" {
   key_name = "${var.key_name}"
 
   # Our Security group to allow HTTP and SSH access
-  vpc_security_group_ids = ["${aws_security_group.security_group.id}"]
+  security_groups = ["${aws_security_group.security_group.name}"]
 
   # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
@@ -157,32 +151,31 @@ resource "aws_db_subnet_group" "default" {
   subnet_ids = ["subnet-729a212b", "subnet-cf551af5", "subnet-1797373c"]
 }
 
-# Creating RDS instance
-resource "aws_db_instance" "default" {
-  identifier = "qaestagingrds"
-  allocated_storage = 5
-  storage_type = "gp2" # (general purpose SSD)
-  multi_az = true
-  engine = "postgres"
-  engine_version = "9.3.5"
-  instance_class = "db.t2.micro"
-  name = "qae"
-  username = "qae"
-  password = "AKIAJAM6U4DHONV2KYQA"
-  vpc_security_group_ids = ["${aws_security_group.db_security_group.id}"]
-  db_subnet_group_name = "${aws_db_subnet_group.default.id}"
-  parameter_group_name = "default.postgres9.3"
+# # Creating RDS instance
+# resource "aws_db_instance" "default" {
+#   identifier = "qaestagingrds"
+#   allocated_storage = 5
+#   storage_type = "gp2" # (general purpose SSD)
+#   multi_az = true
+#   engine = "postgres"
+#   engine_version = "9.3.5"
+#   instance_class = "db.t2.micro"
+#   name = "qae"
+#   username = "qae"
+#   password = "AKIAJAM6U4DHONV2KYQA"
+#   vpc_security_group_ids = ["${aws_security_group.db_security_group.id}"]
+#   db_subnet_group_name = "${aws_db_subnet_group.default.id}"
+#   parameter_group_name = "default.postgres9.3"
 
-  # storage_encrypted = true # Uncomment for prod environment
-}
+#   # storage_encrypted = true # Uncomment for prod environment
+# }
 
 # Create Launch Configuration
 resource "aws_launch_configuration" "launch_configuration" {
   name = "launch_configuration"
   image_id = "${var.aws_ami}" # TODO: replace with smth else
   instance_type = "m3.medium"
-  security_groups = ["${aws_security_group.security_group.id}"]
-  associate_public_ip_address = true
+  security_groups = ["${aws_security_group.security_group.name}"]
 
   # The name of our SSH keypair we created via aws cli
   key_name = "${var.key_name}"
@@ -200,4 +193,10 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   force_delete = true
   launch_configuration = "${aws_launch_configuration.launch_configuration.id}"
   load_balancers = ["${aws_elb.load_balancer.name}"]
+}
+
+# Create S3 private bucket
+resource "aws_s3_bucket" "b" {
+  bucket = "qaestagingbucket"
+  acl = "private"
 }

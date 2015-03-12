@@ -27,7 +27,7 @@ $ terraform init git@github.com:bitzesty/qae-terraform.git
 
 5) Generate new AWS key pair (or if you already have one - you can just put .pem to ssh_keys directory)
 ```
-$ aws ec2 --region us-west-2 create-key-pair --key-name qae | jq -r ".KeyMaterial" > ssh_keys/qae.pem
+$ aws ec2 --region <YOUR REGION (ex: us-east-1)> create-key-pair --key-name qae | jq -r ".KeyMaterial" > ssh_keys/qae.pem
 ```
 New ssh pem file will be generated to ssh_keys/qae.pem.
 
