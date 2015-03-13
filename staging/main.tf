@@ -48,6 +48,19 @@ resource "aws_security_group" "staging_db_security_group" {
   }
 }
 
+resource "aws_security_group" "staging_eccluster_security_group" {
+  name = "StagingECRedisClusterSG"
+  description = "Allow access to ElasticCache Redis cluster for EC-2 instances (STAGING)"
+
+  # POSTGRESQL access from EC-2 instances
+  ingress {
+    from_port = 6379
+    to_port = 6379
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.staging_web_security_group.id}"]
+  }
+}
+
 resource "aws_elb" "staging_load_balancer" {
   name = "StagingLoadBalancer"
 

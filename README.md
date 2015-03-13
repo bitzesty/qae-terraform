@@ -98,6 +98,7 @@ The output above is truncated, but Terraform did a few things for us here:
 
 - Created a security group allowing SSH and HTTP/HTTPS access
 - Created a security group allowing access to RDS Postgres instance for EC-2 instances
+- Created a secutiry group allowing access to ElasticCache Redis cluster for EC-2 instances
 - Created 2 EC2 instances from the Ubuntu 14.10 AMI
 - Created an ELB instance and used the our EC2 instances as its backend
 - Created Launch Configuration and Auto-scaling group with (2 min and 3 max instances)
@@ -110,9 +111,69 @@ The output above is truncated, but Terraform did a few things for us here:
 $ terraform show
 ```
 
-#### 10) Then you can start CHEF provision of instances
+#### 10) ADDING OF OTHER AWS SERVICES
 
-##### 10-1) Add your ssh key to server, which you are gonna to provision with CHEF
+Currently Terraform doesn't allow to setup AWS ElasticCache and AWS SQS.
+So, we need to add it manually.
+
+##### 10-1) Setup AWS SQS (Message Queue)
+
+1) Visit https://eu-west-1.console.aws.amazon.com/sqs/home?region=eu-west-1#
+
+2) Fill in form with creation of New Queue
+   - fill in name (for example: stagingsqsqueue)
+   * other fields leave in defaults
+
+3) Put the name of created queue to related [environment (staging / production) node](https://github.com/bitzesty/qae-chef/blob/master/nodes)
+in CHEF REPO.
+```
+"env": {
+  ...
+  "AWS_SQS_QUEUE": "<>"
+},
+```
+
+##### 10-2) Setup AWS Elastic Cache
+
+1) Visit https://eu-west-1.console.aws.amazon.com/elasticache/home?region=eu-west-1#
+
+2) Setup new Elastic Cache Redis Cluster
+
+Step 1: Select Engine
+  - Redis
+
+Step 2: Specify Cluster Details
+  - fill "Cluster Name*" (for example: stagingrediscluster)
+  - cache.t2.micro (For Staging) and  cache.m1.small (For production)
+    * Make sure that you setup in accordance with "QAE server setup" google doc requirements
+  - untick "Enable Replication" for staging and tick it for production
+  * other fields leave in defaults
+
+Step 3:Configure Advanced Settings
+  - VPC Security Group(s) select "StagingECRedisClusterSG" (which was created by Terraform)
+  * other fields leave in defaults
+
+3) Put port and host to related [environment (staging / production) node](https://github.com/bitzesty/qae-chef/blob/master/nodes)
+in CHEF REPO.
+```
+"env": {
+  ...
+  "AWS_ELASTIC_CACHE_REDIS_CLUSTER_PORT": "6379",
+  "AWS_ELASTIC_CACHE_REDIS_CLUSTER_HOST": "stagingrediscluster.XXXXXX.amazonaws.com"
+},
+```
+
+#### 11) Then you can start CHEF provision of instances
+
+##### NOTE 1
+You need to do CHEF provision only in 2 cases:
+1) if you starting with clean Ubuntu AMI
+2) if you need to make some global changes (install some packeges, updated configuration so on) - not deploys
+
+##### NOTE 2
+By default we already have prepared AMI with all necessary packages and configuration
+
+##### 11-1) Add your ssh key to server, which you are gonna to provision with CHEF
 
 ```
 # test connection by .pem key
@@ -122,14 +183,7 @@ ssh -i ssh_keys/qae_<ENVIRONMENT>.pem ubuntu@<EC2 INSTANCE IP>
 cat ~/.ssh/id_rsa.pub | ssh -i ssh_keys/qae_<ENVIRONMENT>.pem ubuntu@<EC2 INSTANCE IP> 'cat >> ~/.ssh/authorized_keys'
 ```
 
-##### 10-2) [QAE CHEF PROVISION GUIDE](https://github.com/bitzesty/qae-chef)
+##### 11-2) [QAE CHEF PROVISION GUIDE](https://github.com/bitzesty/qae-chef)
 
-#### 11) ADDING OF OTHER AWS SERVICES
 
-Currently Terraform doesn't allow to setup AWS ElasticCache and AWS SQS.
-So, we need to add it manually.
-
-##### 11-1) Setup AWS Elastic Cache
-
-##### 11-2) Setup AWS SQS (Message Queue)
 
