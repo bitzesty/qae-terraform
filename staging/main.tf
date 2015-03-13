@@ -51,7 +51,7 @@ resource "aws_security_group" "staging_db_security_group" {
 resource "aws_elb" "staging_load_balancer" {
   name = "StagingLoadBalancer"
 
-  availability_zones = ["us-east-1a", "us-east-1e", "us-east-1c"]
+  availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
   security_groups = ["${aws_security_group.staging_web_security_group.id}"]
 
   listener {
@@ -76,8 +76,8 @@ resource "aws_elb" "staging_load_balancer" {
 resource "aws_db_subnet_group" "staging_db_subnet_group" {
   name = "staging_db_subnet_group"
   description = "Staging RDS group of subnets"
-  # us-east-1a, us-east-1e, us-east-1c
-  subnet_ids = ["subnet-729a212b", "subnet-cf551af5", "subnet-1797373c"]
+  # eu-west-1a, eu-west-1b, eu-west-1c
+  subnet_ids = ["subnet-f4c17e83", "subnet-75a7772c", "subnet-0800976d"]
 }
 
 # Creating RDS instance
@@ -113,7 +113,7 @@ resource "aws_launch_configuration" "staging_launch_configuration" {
 #  Configure Auto Scaling group
 resource "aws_autoscaling_group" "staging_autoscaling_group" {
   name = "staging_autoscaling_group"
-  availability_zones = ["us-east-1a", "us-east-1e", "us-east-1c"]
+  availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
   max_size = 3
   min_size = 2
   health_check_grace_period = 300
