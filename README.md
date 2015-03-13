@@ -60,7 +60,7 @@ ec2_instance_type = "<EC2 INSTANCE TYPE>" # For example: m3.large
 
 ##### NOTE 1:
 Enable user_data in main.tf in case if you are using clean AMI images
-without NGINX installed - as AWS Auto-Scaling Group does healthy check to HTTP 80 port
+without NGINX installed - as AWS Auto-Scaling Group does healthy checks to HTTP 80 port
 and will terminate current instances and populate new
 as new instances do not response on healthy checks.
 
