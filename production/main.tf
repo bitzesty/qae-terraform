@@ -68,7 +68,7 @@ resource "aws_elb" "production_load_balancer" {
   #   instance_protocol = "https"
   #   lb_port = 443
   #   lb_protocol = "https"
-  #   ssl_certificate_id = "www.qae.co.uk"
+  #   ssl_certificate_id = "arn:aws:iam::.......com"
   # }
 }
 
@@ -129,3 +129,12 @@ resource "aws_s3_bucket" "production_aws_bucket" {
   bucket = "productionuploadsbucket"
   acl = "private"
 }
+
+# Create AWS ROUTE53 record set up to point to the ELB
+# resource "aws_route53_record" "api" {
+#   zone_id = "<ZONE ID>"
+#   name = "endpoint.com"
+#   type = "CNAME"
+#   ttl = "300"
+#   records = ["${aws_elb.api.dns_name}"]
+# }
