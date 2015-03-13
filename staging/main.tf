@@ -108,6 +108,13 @@ resource "aws_launch_configuration" "staging_launch_configuration" {
 
   # The name of our SSH keypair we created via aws cli
   key_name = "${var.key_name}"
+
+  # Enable user_data in case if you are using clean AMI images
+  # without NGINX installed - as AWS Auto-Scaling Group
+  # does healthy check to HTTP 80 port
+  # and will terminate current instances and populate new
+  # as new instances do not response on healthy checks
+  # user_data = "${file(var.user_data)}"
 }
 
 #  Configure Auto Scaling group

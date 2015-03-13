@@ -32,7 +32,7 @@ $ terraform init git@github.com:bitzesty/qae-terraform.git
 #### 4) Generate new AWS key pair (or if you already have one uploaded to AWS EC-2 -> Key Pairs - then you can just put .pem to ssh_keys directory and skip this step)
 
 ```
-$ aws ec2 --region <YOUR REGION (ex: us-east-1)> create-key-pair --key-name qae_<ENVIRONMENT> | jq -r ".KeyMaterial" > ssh_keys/qae_<ENVIRONMENT>.pem
+$ aws ec2 --region <YOUR REGION (ex: eu-west-1)> create-key-pair --key-name qae_<ENVIRONMENT> | jq -r ".KeyMaterial" > ssh_keys/qae_<ENVIRONMENT>.pem
 
 $ chmod 400 ssh_keys/qae_<ENVIRONMENT>.pem
 ```
@@ -51,10 +51,21 @@ You can user example file terraform.tfvars.example
 ```
 access_key = "<AWS_ACCESS_KEY>"
 secret_key = "<AWS_SECRET_KEY>"
-aws_region = "us-east-1"
+aws_region = "eu-west-1"
 postgres_password = ""
+aws_ami = "<EC2 AMI>" # ami-234ecc54 # Clean Ubuntu 14.10
+ec2_instance_type = "<EC2 INSTANCE TYPE>" # For example: m3.large
 
 ```
+
+##### NOTE 1:
+Enable user_data in main.tf in case if you are using clean AMI images
+without NGINX installed - as AWS Auto-Scaling Group does healthy check to HTTP 80 port
+and will terminate current instances and populate new
+as new instances do not response on healthy checks.
+
+##### NOTE 2:
+By default: we use own already provisioned by CHEF AMI image
 
 #### 7) Make a Plan to see how Terraform intends to build the resources you declared.
 
@@ -101,10 +112,24 @@ $ terraform show
 
 #### 10) Then you can start CHEF provision of instances
 
-[QAE CHEF](https://github.com/bitzesty/qae-chef)
-
-#### 11) Destroy provisioned infrastructure
+##### 10-1) Add your ssh key to server, which you are gonna to provision with CHEF
 
 ```
-$ terraform destroy -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
+# test connection by .pem key
+ssh -i ssh_keys/qae_<ENVIRONMENT>.pem ubuntu@<EC2 INSTANCE IP>
+
+# add your own ssh key
+cat ~/.ssh/id_rsa.pub | ssh -i ssh_keys/qae_<ENVIRONMENT>.pem ubuntu@<EC2 INSTANCE IP> 'cat >> ~/.ssh/authorized_keys'
 ```
+
+##### 10-2) [QAE CHEF PROVISION GUIDE](https://github.com/bitzesty/qae-chef)
+
+#### 11) ADDING OF OTHER AWS SERVICES
+
+Currently Terraform doesn't allow to setup AWS ElasticCache and AWS SQS.
+So, we need to add it manually.
+
+##### 11-1) Setup AWS Elastic Cache
+
+##### 11-2) Setup AWS SQS (Message Queue)
+
