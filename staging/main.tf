@@ -74,15 +74,13 @@ resource "aws_elb" "staging_load_balancer" {
     lb_protocol = "http"
   }
 
-  # SSL support
-  # Uncomment it once SSL certs will be ready
-  # listener {
-  #   instance_port = 443
-  #   instance_protocol = "https"
-  #   lb_port = 443
-  #   lb_protocol = "https"
-  #   ssl_certificate_id = "www.qae.co.uk"
-  # }
+  health_check {
+    healthy_threshold = 10
+    unhealthy_threshold = 2
+    timeout = 5
+    target = "HTTP:80/"
+    interval = 30
+  }
 }
 
 # Preparing RDS Subnet Group
@@ -127,7 +125,7 @@ resource "aws_launch_configuration" "staging_launch_configuration" {
   # does healthy check to HTTP 80 port
   # and will terminate current instances and populate new
   # as new instances do not response on healthy checks
-  # user_data = "${file(var.user_data)}"
+  user_data = "${file(var.user_data)}"
 }
 
 #  Configure Auto Scaling group
