@@ -137,18 +137,36 @@ Step 1: Select Engine
   - Redis
 
 Step 2: Specify Cluster Details
-  - fill "Cluster Name*" (for example: stagingrediscluster)
-  - cache.t2.micro (For Staging) and  cache.m1.small (For production)
+
+For staging:
+  - Cluster Name: stagingrediscluster
+  - Node Type: cache.t2.micro
     * Make sure that you setup in accordance with "QAE server setup" google doc requirements
   - untick "Enable Replication" for staging and tick it for production
   * other fields leave in defaults
 
+For production:
+  - "Enable Replication" and "Multi-AZ" should be selected
+  - Node Type: cache.m1.small
+    * Make sure that you setup in accordance with "QAE server setup" google doc requirements
+  - Replication Group Name: productionec
+  - Replication Group Description: Production ECCluster replication group
+  - Number of Read Replicas: 1
+  * other fields leave in defaults
+
 Step 3:Configure Advanced Settings
+
+For staging:
   - VPC Security Group(s) select "StagingECRedisClusterSG" (which was created by Terraform)
+
+For production :
+  - VPC Security Group(s) select "ProductionECRedisClusterSG" (which was created by Terraform)
   * other fields leave in defaults
 
 3) Put port and host to related [environment (staging / production) node](https://github.com/bitzesty/qae-chef/blob/master/nodes)
 in CHEF REPO.
+
+For staging:
 ```
 "env": {
   ...
@@ -156,6 +174,21 @@ in CHEF REPO.
   "AWS_ELASTIC_CACHE_REDIS_CLUSTER_HOST": "stagingrediscluster.XXXXXX.amazonaws.com"
 },
 ```
+
+For production:
+We need to specify Primary Endpoint for Replication Group
+You can find it in:
+  https://eu-west-1.console.aws.amazon.com/elasticache/home?region=eu-west-1
+  "Replication Groups" -> "productionec" -> find "Primary Endpoint" in details
+
+```
+"env": {
+  ...
+  "AWS_ELASTIC_CACHE_REDIS_CLUSTER_PORT": "6379",
+  "AWS_ELASTIC_CACHE_REDIS_CLUSTER_HOST": "productionec.XXXXXXXXXXX.amazonaws.com"
+},
+```
+More info about [Multi-AZ with Redis Replication Groups](http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/AutoFailover.html)
 
 #### 11) Then you can start CHEF provision of instances
 
