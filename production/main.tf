@@ -4,10 +4,11 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
+# SECURITY GROUPS
 # Our security group to access the instances over SSH and HTTP/ HTTPS
 resource "aws_security_group" "production_web_security_group" {
   name = "ProductionWebServerSG"
-  description = "Allow HTTP, HTTPS and SSH inbound traffic from anythere and allow all outbound traffic (PRODUCTION)"
+  description = "Allow HTTP, HTTPS inbound traffic from anythere and allow all outbound traffic, SSH (only from Bitzesty IP range) (PRODUCTION)"
 
   # HTTP access from anywhere
   ingress {
@@ -25,7 +26,7 @@ resource "aws_security_group" "production_web_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # SSH access from anywhere
+  # SSH access from Bitzesty IP range only
   ingress {
     from_port = 22
     to_port = 22
@@ -34,7 +35,7 @@ resource "aws_security_group" "production_web_security_group" {
   }
 }
 
-# Our db security group to allow access to RDS for EC-2 instances
+# DB security group to allow access to RDS for EC-2 instances
 resource "aws_security_group" "production_db_security_group" {
   name = "ProductionDBServerSG"
   description = "Allow access to RDS for EC-2 instances (PRODUCTION)"
@@ -48,6 +49,21 @@ resource "aws_security_group" "production_db_security_group" {
   }
 }
 
+# Redis security group to allow access to ElasticCache Redis cluster for EC-2 instances
+resource "aws_security_group" "production_eccluster_security_group" {
+  name = "ProductionECRedisClusterSG"
+  description = "Allow access to ElasticCache Redis cluster for EC-2 instances (PRODUCTION)"
+
+  # ElasticCache Redis cluster from EC-2 instances
+  ingress {
+    from_port = 6379
+    to_port = 6379
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.production_web_security_group.id}"]
+  }
+}
+
+# LOAD BALANCER
 resource "aws_elb" "production_load_balancer" {
   name = "ProductionLoadBalancer"
 
@@ -70,6 +86,14 @@ resource "aws_elb" "production_load_balancer" {
   #   lb_protocol = "https"
   #   ssl_certificate_id = "arn:aws:iam::.......com"
   # }
+
+  health_check {
+    healthy_threshold = 10
+    unhealthy_threshold = 2
+    timeout = 5
+    target = "HTTP:80/"
+    interval = 30
+  }
 }
 
 # Preparing RDS Subnet Group
@@ -83,9 +107,9 @@ resource "aws_db_subnet_group" "production_db_subnet_group" {
 # Creating RDS instance
 resource "aws_db_instance" "production_rds_instance" {
   identifier = "productionrdsinstance"
-  allocated_storage = 5
-  storage_type = "gp2" # (general purpose SSD)
-  multi_az = true
+  storage_type = "io1" # (provisioned IOPS SSD)
+  allocated_storage = 100
+  iops = 1000
   engine = "postgres"
   engine_version = "9.3.5"
   instance_class = "db.m3.large"
@@ -96,7 +120,8 @@ resource "aws_db_instance" "production_rds_instance" {
   db_subnet_group_name = "${aws_db_subnet_group.production_db_subnet_group.id}"
   parameter_group_name = "default.postgres9.3"
 
-  storage_encrypted = true # Uncomment for prod environment
+  multi_az = true
+  storage_encrypted = true
 }
 
 # Create Launch Configuration
@@ -117,7 +142,7 @@ resource "aws_launch_configuration" "production_launch_configuration" {
   # user_data = "${file(var.user_data)}"
 }
 
-#  Configure Auto Scaling group
+# Configure Auto Scaling group
 resource "aws_autoscaling_group" "production_autoscaling_group" {
   name = "production_autoscaling_group"
   availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
@@ -145,3 +170,4 @@ resource "aws_s3_bucket" "production_aws_bucket" {
 #   ttl = "300"
 #   records = ["${aws_elb.api.dns_name}"]
 # }
+
