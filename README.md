@@ -10,8 +10,7 @@
 
 2.2) Setup necessary packages for AWS CLI
 ```
-$ sudo apt-get install jq
-$ sudo apt-get install awscli
+$ sudo apt-get install awscli jq
 ```
 
 2.3) Setup aws credentials
@@ -75,11 +74,11 @@ $ terraform plan -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PAT
 
 Staging:
 ```
-$ terraform plan -var 'key_name=qae_staging' -var 'key_path=/home/alkapone/projects/qae-terraform/ssh_keys/qae_staging.pem'
+$ terraform plan -var 'key_name=qae_staging' -var 'key_path=./../ssh_keys/qae_staging.pem'
 ```
 Production:
 ```
-$ terraform plan -var 'key_name=qae_production' -var 'key_path=/home/alkapone/projects/qae-terraform/ssh_keys/qae_production.pem'
+$ terraform plan -var 'key_name=qae_production' -var 'key_path=./../ssh_keys/qae_production.pem'
 ```
 
 #### 8) Build Infrastructure
@@ -120,17 +119,12 @@ So, we need to add it manually.
 
 1) Visit https://eu-west-1.console.aws.amazon.com/sqs/home?region=eu-west-1#
 
-2) Fill in form with creation of New Queue
-   - fill in name (for example: stagingsqsqueue)
-   * other fields leave in defaults
-
-3) Put the name of created queue to related [environment (staging / production) node](https://github.com/bitzesty/qae-chef/blob/master/nodes)
-in CHEF REPO.
+2) Add 2 queues per ENV:
 ```
-"env": {
-  ...
-  "AWS_SQS_QUEUE": "<>"
-},
+- staging_mailers
+- staging_default
+- production_mailers
+- production_default
 ```
 
 ##### 10-2) Setup AWS Elastic Cache
