@@ -4,10 +4,11 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
+# SECURITY GROUPS
 # Our security group to access the instances over SSH and HTTP/ HTTPS
 resource "aws_security_group" "staging_web_security_group" {
   name = "StagingWebServerSG"
-  description = "Allow HTTP, HTTPS and SSH inbound traffic from anythere and allow all outbound traffic (STAGING)"
+  description = "Allow HTTP, HTTPS inbound traffic from anythere and allow all outbound traffic, SSH (only from Bitzesty IP range) (STAGING)"
 
   # HTTP access from anywhere
   ingress {
@@ -25,7 +26,7 @@ resource "aws_security_group" "staging_web_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # SSH access from anywhere
+  # SSH access from Bitzesty IP range only
   ingress {
     from_port = 22
     to_port = 22
@@ -34,7 +35,7 @@ resource "aws_security_group" "staging_web_security_group" {
   }
 }
 
-# Our db security group to allow access to RDS for EC-2 instances
+# DB security group to allow access to RDS for EC-2 instances
 resource "aws_security_group" "staging_db_security_group" {
   name = "StagingDBServerSG"
   description = "Allow access to RDS for EC-2 instances (STAGING)"
@@ -48,11 +49,12 @@ resource "aws_security_group" "staging_db_security_group" {
   }
 }
 
+# Redis security group to allow access to ElasticCache Redis cluster for EC-2 instances
 resource "aws_security_group" "staging_eccluster_security_group" {
   name = "StagingECRedisClusterSG"
   description = "Allow access to ElasticCache Redis cluster for EC-2 instances (STAGING)"
 
-  # POSTGRESQL access from EC-2 instances
+  # ElasticCache Redis cluster from EC-2 instances
   ingress {
     from_port = 6379
     to_port = 6379
@@ -61,6 +63,7 @@ resource "aws_security_group" "staging_eccluster_security_group" {
   }
 }
 
+# LOAD BALANCER
 resource "aws_elb" "staging_load_balancer" {
   name = "StagingLoadBalancer"
 
@@ -96,7 +99,6 @@ resource "aws_db_instance" "staging_rds_instance" {
   identifier = "stagingrdsinstance"
   allocated_storage = 5
   storage_type = "gp2" # (general purpose SSD)
-  multi_az = true
   engine = "postgres"
   engine_version = "9.3.5"
   instance_class = "db.t2.micro"
@@ -106,8 +108,6 @@ resource "aws_db_instance" "staging_rds_instance" {
   vpc_security_group_ids = ["${aws_security_group.staging_db_security_group.id}"]
   db_subnet_group_name = "${aws_db_subnet_group.staging_db_subnet_group.id}"
   parameter_group_name = "default.postgres9.3"
-
-  # storage_encrypted = true # Uncomment for prod environment
 }
 
 # Create Launch Configuration
@@ -125,7 +125,7 @@ resource "aws_launch_configuration" "staging_launch_configuration" {
   # does healthy check to HTTP 80 port
   # and will terminate current instances and populate new
   # as new instances do not response on healthy checks
-  user_data = "${file(var.user_data)}"
+  # user_data = "${file(var.user_data)}"
 }
 
 #  Configure Auto Scaling group

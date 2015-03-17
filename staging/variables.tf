@@ -11,11 +11,9 @@ variable "aws_region" {
   default = "eu-west-1" # Ireland is default
 }
 
-# Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-9a562df2
-# Ubuntu Server 14.04 LTS (HVM), EBS General Purpose (SSD) Volume Type. Support available from Canonical (http://www.ubuntu.com/cloud/services).
-# Root device type: ebs Virtualization type: hvm
+# Ubuntu Server 14.04 LTS (HVM) - already provisioned by CHEF
 variable "aws_ami" {
-  default = "ami-234ecc54"
+  default = "ami-f3d24d84"
 }
 variable "postgres_password" {}
 variable "ec2_instance_type" {
