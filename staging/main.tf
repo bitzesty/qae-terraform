@@ -5,10 +5,46 @@ provider "aws" {
 }
 
 # SECURITY GROUPS
-# Our security group to access the instances over SSH and HTTP/ HTTPS
+# EC-2 instances access over SSH
 resource "aws_security_group" "staging_web_security_group" {
   name = "StagingWebServerSG"
-  description = "Allow HTTP, HTTPS inbound traffic from anythere and allow all outbound traffic, SSH (only from Bitzesty IP range) (STAGING)"
+  description = "Allow SSH only from Bitzesty IP range (STAGING)"
+
+  # SSH access from Bitzesty IP range only
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["162.13.181.148/24"]
+  }
+}
+
+# EC-2 instances access over HTTP/ HTTPS from LB only
+resource "aws_security_group" "staging_web_http_security_group" {
+  name = "StagingWebServerHTTPSG"
+  description = "Allow HTTP, HTTPS inbound traffic from LB only"
+
+  # HTTP access from anywhere
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.staging_lb_security_group.id}"]
+  }
+
+  # HTTPS access from anywhere
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.staging_lb_security_group.id}"]
+  }
+}
+
+# LOAD BALANCER security group with access over HTTP/ HTTPS
+resource "aws_security_group" "staging_lb_security_group" {
+  name = "StagingLoadBalancerSG"
+  description = "Allow HTTP, HTTPS inbound traffic from anythere and allow all outbound traffic"
 
   # HTTP access from anywhere
   ingress {
@@ -24,14 +60,6 @@ resource "aws_security_group" "staging_web_security_group" {
     to_port = 443
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # SSH access from Bitzesty IP range only
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["162.13.181.148/24"]
   }
 }
 
@@ -68,7 +96,7 @@ resource "aws_elb" "staging_load_balancer" {
   name = "StagingLoadBalancer"
 
   availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
-  security_groups = ["${aws_security_group.staging_web_security_group.id}"]
+  security_groups = ["${aws_security_group.staging_lb_security_group.id}"]
 
   listener {
     instance_port = 80
@@ -115,7 +143,10 @@ resource "aws_launch_configuration" "staging_launch_configuration" {
   name = "staging_launch_configuration"
   image_id = "${var.aws_ami}" # TODO: replace with smth else
   instance_type = "${var.ec2_instance_type}"
-  security_groups = ["${aws_security_group.staging_web_security_group.name}"]
+  security_groups = [
+    "${aws_security_group.staging_web_security_group.name}",
+    "${aws_security_group.staging_web_http_security_group.name}"
+  ]
 
   # The name of our SSH keypair we created via aws cli
   key_name = "${var.key_name}"
