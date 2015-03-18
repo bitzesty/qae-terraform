@@ -8,7 +8,43 @@ provider "aws" {
 # Our security group to access the instances over SSH and HTTP/ HTTPS
 resource "aws_security_group" "production_web_security_group" {
   name = "ProductionWebServerSG"
-  description = "Allow HTTP, HTTPS inbound traffic from anythere and allow all outbound traffic, SSH (only from Bitzesty IP range) (PRODUCTION)"
+  description = "Allow SSH only from Bitzesty IP range (PRODUCTION)"
+
+  # SSH access from Bitzesty IP range only
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["162.13.181.148/24"]
+  }
+}
+
+# EC-2 instances access over HTTP/ HTTPS from LB only
+resource "aws_security_group" "production_web_http_security_group" {
+  name = "ProductionWebServerHTTPSG"
+  description = "Allow HTTP, HTTPS inbound traffic from LB only"
+
+  # HTTP access from anywhere
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.production_lb_security_group.id}"]
+  }
+
+  # HTTPS access from anywhere
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.production_lb_security_group.id}"]
+  }
+}
+
+# LOAD BALANCER security group with access over HTTP/ HTTPS
+resource "aws_security_group" "production_lb_security_group" {
+  name = "ProductionLoadBalancerSG"
+  description = "Allow HTTP, HTTPS inbound traffic from anythere and allow all outbound traffic"
 
   # HTTP access from anywhere
   ingress {
@@ -24,14 +60,6 @@ resource "aws_security_group" "production_web_security_group" {
     to_port = 443
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # SSH access from Bitzesty IP range only
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["162.13.181.148/24"]
   }
 }
 
@@ -68,7 +96,7 @@ resource "aws_elb" "production_load_balancer" {
   name = "ProductionLoadBalancer"
 
   availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
-  security_groups = ["${aws_security_group.production_web_security_group.id}"]
+  security_groups = ["${aws_security_group.production_lb_security_group.id}"]
 
   listener {
     instance_port = 80
@@ -129,7 +157,10 @@ resource "aws_launch_configuration" "production_launch_configuration" {
   name = "production_launch_configuration"
   image_id = "${var.aws_ami}" # TODO: replace with smth else
   instance_type = "${var.ec2_instance_type}"
-  security_groups = ["${aws_security_group.production_web_security_group.name}"]
+  security_groups = [
+    "${aws_security_group.production_web_security_group.name}",
+    "${aws_security_group.production_web_http_security_group.name}"
+  ]
 
   # The name of our SSH keypair we created via aws cli
   key_name = "${var.key_name}"
