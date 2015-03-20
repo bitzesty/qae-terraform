@@ -11,9 +11,9 @@ variable "aws_region" {
   default = "eu-west-1" # Ireland is default
 }
 
-# Ubuntu Server 14.04 LTS (HVM) - already provisioned by CHEF
+# Ubuntu Server 14.04 LTS (HVM), provisioned by CHEF scripts
 variable "aws_ami" {
-  default = "ami-f3d24d84"
+  default = "ami-8349d7f4"
 }
 variable "postgres_password" {}
 variable "ec2_instance_type" {
