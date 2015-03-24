@@ -22,3 +22,12 @@ variable "ec2_instance_type" {
 variable "user_data" {
   default = "./../settings/user_data.sh"
 }
+
+variable "virus_scanner_aws_ami" {
+  # TODO: replace me with AMI prepared by Packer from
+  # https://github.com/bitzesty/qae-ansible
+  default = "ami-0f4ed078"
+}
+variable "virus_scanner_instance_type" {
+  default = "m1.small"
+}

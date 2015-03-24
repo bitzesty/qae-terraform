@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 # SECURITY GROUPS
-# Our security group to access the instances over SSH and HTTP/ HTTPS
+# Our security group to access the instances over SSH
 resource "aws_security_group" "production_web_security_group" {
   name = "ProductionWebServerSG"
   description = "Allow SSH only from Bitzesty IP range (PRODUCTION)"
@@ -156,7 +156,7 @@ resource "aws_db_instance" "production_rds_instance" {
 # Create Launch Configuration
 resource "aws_launch_configuration" "production_launch_configuration" {
   name = "production_launch_configuration"
-  image_id = "${var.aws_ami}" # TODO: replace with smth else
+  image_id = "${var.aws_ami}"
   instance_type = "${var.ec2_instance_type}"
   security_groups = [
     "${aws_security_group.production_web_security_group.name}",
@@ -203,3 +203,70 @@ resource "aws_s3_bucket" "production_aws_bucket" {
 #   records = ["${aws_elb.api.dns_name}"]
 # }
 
+# VIRUS SCANNER CONFIGURATION
+
+# Virus scanner security group to access the instances over SSH
+resource "aws_security_group" "production_virus_scanner_ssh_security_group" {
+  name = "ProductionVirusScannerSSHSG"
+  description = "Allow SSH only from Bitzesty IP range (PRODUCTION)"
+
+  # SSH access from Bitzesty IP range only
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["162.13.181.148/24"]
+  }
+}
+
+# Virus scanner access over HTTP/ HTTPS from LB and EC-2 instances only
+resource "aws_security_group" "production_virus_scanner_http_security_group" {
+  name = "ProductionVirusScannerHTTPSG"
+  description = "Allow HTTP, HTTPS inbound traffic from LB and EC-2 instances only"
+
+  # HTTP access from anywhere
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    security_groups = [
+      "${aws_security_group.production_lb_security_group.id}",
+      "${aws_security_group.production_web_security_group.id}"
+    ]
+  }
+
+  # HTTPS access from anywhere
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    security_groups = [
+      "${aws_security_group.production_lb_security_group.id}",
+      "${aws_security_group.production_web_security_group.id}"
+    ]
+  }
+}
+
+# Virus Scanner EC-2 instance
+resource "aws_instance" "virus_scanner_instance" {
+  ami = "${var.virus_scanner_aws_ami}"
+  instance_type = "${var.virus_scanner_instance_type}"
+  availability_zone = "eu-west-1a"
+
+  key_name = "${var.key_name}"
+
+  security_groups = [
+    "${aws_security_group.production_virus_scanner_http_security_group.id}",
+    "${aws_security_group.production_virus_scanner_ssh_security_group.id}"
+  ]
+
+  tags {
+    Name = "ProductionVirusScanner"
+  }
+}
+
+# Assign Elastic IP to Virus Scanner EC-2 instance
+resource "aws_eip" "virus_scanner_elastic_ip" {
+  instance = "${aws_instance.virus_scanner_instance.id}"
+  vpc = true
+}

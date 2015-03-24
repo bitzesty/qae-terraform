@@ -179,3 +179,71 @@ resource "aws_s3_bucket" "staging_aws_bucket" {
   bucket = "staginguploadsbucket"
   acl = "private"
 }
+
+# VIRUS SCANNER CONFIGURATION
+
+# Virus scanner security group to access the instances over SSH
+resource "aws_security_group" "staging_virus_scanner_ssh_security_group" {
+  name = "StagingVirusScannerSSHSG"
+  description = "Allow SSH only from Bitzesty IP range (STAGING)"
+
+  # SSH access from Bitzesty IP range only
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["162.13.181.148/24"]
+  }
+}
+
+# Virus scanner access over HTTP/ HTTPS from LB and EC-2 instances only
+resource "aws_security_group" "staging_virus_scanner_http_security_group" {
+  name = "StagingVirusScannerHTTPSG"
+  description = "Allow HTTP, HTTPS inbound traffic from LB and EC-2 instances only"
+
+  # HTTP access from anywhere
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    security_groups = [
+      "${aws_security_group.staging_lb_security_group.id}",
+      "${aws_security_group.staging_web_security_group.id}"
+    ]
+  }
+
+  # HTTPS access from anywhere
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    security_groups = [
+      "${aws_security_group.staging_lb_security_group.id}",
+      "${aws_security_group.staging_web_security_group.id}"
+    ]
+  }
+}
+
+# Virus Scanner EC-2 instance
+resource "aws_instance" "staging_virus_scanner_instance" {
+  ami = "${var.virus_scanner_aws_ami}"
+  instance_type = "${var.virus_scanner_instance_type}"
+  availability_zone = "eu-west-1a"
+
+  key_name = "${var.key_name}"
+
+  security_groups = [
+    "${aws_security_group.staging_virus_scanner_http_security_group.id}",
+    "${aws_security_group.staging_virus_scanner_ssh_security_group.id}"
+  ]
+
+  tags {
+    Name = "StagingVirusScanner"
+  }
+}
+
+# Assign Elastic IP to Virus Scanner EC-2 instance
+resource "aws_eip" "staging_virus_scanner_elastic_ip" {
+  instance = "${aws_instance.staging_virus_scanner_instance.id}"
+  vpc = true
+}
