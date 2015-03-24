@@ -183,8 +183,8 @@ resource "aws_s3_bucket" "staging_aws_bucket" {
 # VIRUS SCANNER CONFIGURATION
 
 # Virus scanner security group to access the instances over SSH
-resource "aws_security_group" "staging_virus_scanner_ssh_security_group" {
-  name = "StagingVirusScannerSSHSG"
+resource "aws_security_group" "virus_scanner_staging_ssh_security_group" {
+  name = "VirusScannerStagingSSHSG"
   description = "Allow SSH only from Bitzesty IP range (STAGING)"
 
   # SSH access from Bitzesty IP range only
@@ -196,10 +196,10 @@ resource "aws_security_group" "staging_virus_scanner_ssh_security_group" {
   }
 }
 
-# Virus scanner access over HTTP/ HTTPS from LB and EC-2 instances only
-resource "aws_security_group" "staging_virus_scanner_http_security_group" {
-  name = "StagingVirusScannerHTTPSG"
-  description = "Allow HTTP, HTTPS inbound traffic from LB and EC-2 instances only"
+# Virus scanner's LOAD BALANCER security group with access over HTTP/ HTTPS
+resource "aws_security_group" "virus_scaner_staging_lb_security_group" {
+  name = "VirusScannerStagingLoadBalancerSG"
+  description = "Allow HTTP, HTTPS inbound traffic from WEBAPP's LB or EC-2 instances and allow all outbound traffic"
 
   # HTTP access from anywhere
   ingress {
@@ -224,26 +224,88 @@ resource "aws_security_group" "staging_virus_scanner_http_security_group" {
   }
 }
 
-# Virus Scanner EC-2 instance
-resource "aws_instance" "staging_virus_scanner_instance" {
-  ami = "${var.virus_scanner_aws_ami}"
-  instance_type = "${var.virus_scanner_instance_type}"
-  availability_zone = "eu-west-1a"
+# Virus scanner access over HTTP/ HTTPS to EC-2 instance from LB only
+resource "aws_security_group" "virus_scanner_staging_http_security_group" {
+  name = "VirusScannerStagingHTTPSG"
+  description = "Allow HTTP, HTTPS inbound traffic from LB only"
 
-  key_name = "${var.key_name}"
+  # HTTP access from anywhere
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    security_groups = [
+      "${aws_security_group.virus_scaner_staging_lb_security_group.id}"
+    ]
+  }
 
-  security_groups = [
-    "${aws_security_group.staging_virus_scanner_http_security_group.id}",
-    "${aws_security_group.staging_virus_scanner_ssh_security_group.id}"
-  ]
-
-  tags {
-    Name = "StagingVirusScanner"
+  # HTTPS access from anywhere
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    security_groups = [
+      "${aws_security_group.virus_scaner_staging_lb_security_group.id}"
+    ]
   }
 }
 
-# Assign Elastic IP to Virus Scanner EC-2 instance
-resource "aws_eip" "staging_virus_scanner_elastic_ip" {
-  instance = "${aws_instance.staging_virus_scanner_instance.id}"
-  vpc = true
+# LOAD BALANCER
+resource "aws_elb" "virus_scaner_staging_load_balancer" {
+  name = "VirusScannerStagingLoadBalancer"
+
+  availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  security_groups = ["${aws_security_group.virus_scaner_staging_lb_security_group.id}"]
+  cross_zone_load_balancing = true
+
+  listener {
+    instance_port = 80
+    instance_protocol = "http"
+    lb_port = 80
+    lb_protocol = "http"
+  }
+
+  # SSL support
+  # Uncomment it once SSL certs will be ready
+  # listener {
+  #   instance_port = 443
+  #   instance_protocol = "https"
+  #   lb_port = 443
+  #   lb_protocol = "https"
+  #   ssl_certificate_id = "arn:aws:iam::.......com"
+  # }
+
+  health_check {
+    healthy_threshold = 10
+    unhealthy_threshold = 2
+    timeout = 5
+    target = "HTTP:80/"
+    interval = 30
+  }
+}
+
+# Launch Configuration for Virus Scanner ASG
+resource "aws_launch_configuration" "virus_scanner_staging_launch_configuration" {
+  name = "virus_scanner_staging_launch_configuration"
+  image_id = "${var.virus_scanner_aws_ami}"
+  instance_type = "${var.virus_scanner_instance_type}"
+  security_groups = [
+    "${aws_security_group.virus_scanner_staging_ssh_security_group.name}",
+    "${aws_security_group.virus_scanner_staging_http_security_group.name}"
+  ]
+
+  key_name = "${var.key_name}"
+}
+
+# Configure Auto Scaling group
+resource "aws_autoscaling_group" "virus_scanner_staging_autoscaling_group" {
+  name = "virus_scanner_staging_autoscaling_group"
+  availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  max_size = 1
+  min_size = 1
+  health_check_grace_period = 300
+  health_check_type = "ELB"
+  desired_capacity = 1
+  force_delete = true
+  launch_configuration = "${aws_launch_configuration.virus_scanner_staging_launch_configuration.id}"
 }
