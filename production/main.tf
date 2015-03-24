@@ -273,7 +273,49 @@ resource "aws_security_group" "virus_scanner_production_http_security_group" {
   }
 }
 
-# LOAD BALANCER
+# Virus Scanner DB security group to allow access to RDS for EC-2 instances
+resource "aws_security_group" "virus_scanner_production_db_security_group" {
+  name = "VirusScannerProductionDBServerSG"
+  description = "Allow access to RDS for EC-2 instances (PRODUCTION)"
+
+  # POSTGRESQL access from EC-2 instances
+  ingress {
+    from_port = 5432
+    to_port = 5432
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.virus_scanner_production_ssh_security_group.id}"]
+  }
+}
+
+# Virus Scanner Preparing RDS Subnet Group
+resource "aws_db_subnet_group" "virus_scanner_production_db_subnet_group" {
+  name = "virus_scanner_production_db_subnet_group"
+  description = "Virus Scanner Production RDS group of subnets"
+  # eu-west-1a, eu-west-1b, eu-west-1c
+  subnet_ids = ["subnet-f4c17e83", "subnet-75a7772c", "subnet-0800976d"]
+}
+
+# VirusScanner RDS instance
+resource "aws_db_instance" "virus_scanner_production_rds_instance" {
+  identifier = "virusscannerproductionrdsinstance"
+  storage_type = "io1" # (provisioned IOPS SSD)
+  allocated_storage = 100
+  iops = 1000
+  engine = "postgres"
+  engine_version = "9.3.5"
+  instance_class = "db.m3.large"
+  name = "virus_scanner_qae"
+  username = "virus_scanner_qae"
+  password = "${var.virus_scanner_postgres_password}"
+  vpc_security_group_ids = ["${aws_security_group.virus_scanner_production_db_security_group.id}"]
+  db_subnet_group_name = "${aws_db_subnet_group.virus_scanner_production_db_subnet_group.id}"
+  parameter_group_name = "default.postgres9.3"
+
+  multi_az = true
+  storage_encrypted = true
+}
+
+# Virus Scanner's LOAD BALANCER
 resource "aws_elb" "virus_scaner_production_load_balancer" {
   name = "VirusScannerProductionLoadBalancer"
 

@@ -23,6 +23,7 @@ variable "user_data" {
   default = "./../settings/user_data.sh"
 }
 
+# VIRUS SCANNER VARIABLES
 variable "virus_scanner_aws_ami" {
   # TODO: replace me with AMI prepared by Packer from
   # https://github.com/bitzesty/qae-ansible
@@ -31,3 +32,4 @@ variable "virus_scanner_aws_ami" {
 variable "virus_scanner_instance_type" {
   default = "m1.small"
 }
+variable "virus_scanner_postgres_password" {}
