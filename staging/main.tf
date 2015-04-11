@@ -44,14 +44,31 @@ resource "aws_security_group" "staging_web_http_security_group" {
 # LOAD BALANCER security group with access over HTTP/ HTTPS
 resource "aws_security_group" "staging_lb_security_group" {
   name = "StagingLoadBalancerSG"
-  description = "Allow HTTP, HTTPS inbound traffic from anythere and allow all outbound traffic"
+  description = "Allow HTTP, HTTPS inbound traffic from Cloudfare only allow all outbound traffic"
+
+  # Cloudfare IPS: https://www.cloudflare.com/ips
 
   # HTTP access from anywhere
   ingress {
     from_port = 80
     to_port = 80
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [
+      "199.27.128.0/21",
+      "173.245.48.0/20",
+      "103.21.244.0/22",
+      "103.22.200.0/22",
+      "103.31.4.0/22",
+      "141.101.64.0/18",
+      "108.162.192.0/18",
+      "190.93.240.0/20",
+      "188.114.96.0/20",
+      "197.234.240.0/22",
+      "198.41.128.0/17",
+      "162.158.0.0/15",
+      "104.16.0.0/12",
+      "172.64.0.0/13"
+    ]
   }
 
   # HTTPS access from anywhere
@@ -59,7 +76,22 @@ resource "aws_security_group" "staging_lb_security_group" {
     from_port = 443
     to_port = 443
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [
+      "199.27.128.0/21",
+      "173.245.48.0/20",
+      "103.21.244.0/22",
+      "103.22.200.0/22",
+      "103.31.4.0/22",
+      "141.101.64.0/18",
+      "108.162.192.0/18",
+      "190.93.240.0/20",
+      "188.114.96.0/20",
+      "197.234.240.0/22",
+      "198.41.128.0/17",
+      "162.158.0.0/15",
+      "104.16.0.0/12",
+      "172.64.0.0/13"
+    ]
   }
 }
 
@@ -111,7 +143,7 @@ resource "aws_elb" "staging_load_balancer" {
     unhealthy_threshold = 2
     timeout = 5
     target = "HTTP:80/healthcheck"
-    interval = 30
+    interval = 300
   }
 }
 
