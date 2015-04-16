@@ -8,9 +8,9 @@ provider "aws" {
 # EC-2 instances access over SSH
 resource "aws_security_group" "staging_web_security_group" {
   name = "StagingWebServerSG"
-  description = "Allow SSH only from Bitzesty IP range (STAGING)"
+  description = "Allow SSH only from Bit Zesty IP range (STAGING)"
 
-  # SSH access from Bitzesty IP range only
+  # SSH access from Bit Zesty IP range only
   ingress {
     from_port = 22
     to_port = 22
@@ -44,17 +44,16 @@ resource "aws_security_group" "staging_web_http_security_group" {
 # LOAD BALANCER security group with access over HTTP/ HTTPS
 resource "aws_security_group" "staging_lb_security_group" {
   name = "StagingLoadBalancerSG"
-  description = "Allow HTTP, HTTPS inbound traffic from Cloudfare only allow all outbound traffic"
+  description = "Allow HTTP, HTTPS inbound traffic from Cloudflare only allow all outbound traffic"
 
-  # Cloudfare IPS: https://www.cloudflare.com/ips
+  # Cloudflare IPS: https://www.cloudflare.com/ips
 
-  # HTTP access from Cloudfare
+  # HTTP access from Cloudflare
   ingress {
     from_port = 80
     to_port = 80
     protocol = "tcp"
     cidr_blocks = [
-      "162.13.181.0/24", # Bitzesty's IP range
       "199.27.128.0/21"
       "173.245.48.0/20"
       "103.21.244.0/22"
@@ -72,13 +71,12 @@ resource "aws_security_group" "staging_lb_security_group" {
     ]
   }
 
-  # HTTPS access from Cloudfare
+  # HTTPS access from Cloudflare
   ingress {
     from_port = 443
     to_port = 443
     protocol = "tcp"
     cidr_blocks = [
-      "162.13.181.0/24", # Bitzesty's IP range
       "199.27.128.0/21"
       "173.245.48.0/20"
       "103.21.244.0/22"
@@ -132,7 +130,7 @@ resource "aws_security_group" "staging_eccluster_security_group" {
 resource "aws_elb" "staging_load_balancer" {
   name = "StagingLoadBalancer"
 
-  availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  availability_zones = ["eu-west-1a", "eu-west-1b"]
   security_groups = ["${aws_security_group.staging_lb_security_group.id}"]
   cross_zone_load_balancing = true
 
@@ -141,6 +139,14 @@ resource "aws_elb" "staging_load_balancer" {
     instance_protocol = "http"
     lb_port = 80
     lb_protocol = "http"
+  }
+
+  listener {
+    instance_port = 443
+    instance_protocol = "http"
+    lb_port = 443
+    lb_protocol = "https"
+    ssl_certificate_id = "arn:aws:iam::081077294140:server-certificate/staging.queens-awards-enterprise.service.gov.uk"
   }
 
   health_check {
@@ -156,8 +162,8 @@ resource "aws_elb" "staging_load_balancer" {
 resource "aws_db_subnet_group" "staging_db_subnet_group" {
   name = "staging_db_subnet_group"
   description = "Staging RDS group of subnets"
-  # eu-west-1a, eu-west-1b, eu-west-1c
-  subnet_ids = ["subnet-f4c17e83", "subnet-75a7772c", "subnet-0800976d"]
+  # eu-west-1a, eu-west-1b
+  subnet_ids = ["subnet-f4c17e83", "subnet-75a7772c"]
 }
 
 # Creating RDS instance
@@ -202,7 +208,7 @@ resource "aws_launch_configuration" "staging_launch_configuration" {
 #  Configure Auto Scaling group
 resource "aws_autoscaling_group" "staging_autoscaling_group" {
   name = "staging_autoscaling_group"
-  availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  availability_zones = ["eu-west-1a", "eu-west-1b"]
   max_size = 3
   min_size = 2
   health_check_grace_period = 300
@@ -307,8 +313,8 @@ resource "aws_s3_bucket" "staging_aws_bucket" {
 # resource "aws_db_subnet_group" "virus_scanner_staging_db_subnet_group" {
 #   name = "virus_scanner_staging_db_subnet_group"
 #   description = "Virus Scanner Staging RDS group of subnets"
-#   # eu-west-1a, eu-west-1b, eu-west-1c
-#   subnet_ids = ["subnet-f4c17e83", "subnet-75a7772c", "subnet-0800976d"]
+#   # eu-west-1a, eu-west-1b
+#   subnet_ids = ["subnet-f4c17e83", "subnet-75a7772c"]
 # }
 
 # VirusScanner RDS instance
@@ -331,7 +337,7 @@ resource "aws_s3_bucket" "staging_aws_bucket" {
 # resource "aws_elb" "virus_scaner_staging_load_balancer" {
 #   name = "VirusScannerStagingLoadBalancer"
 
-#   availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+#   availability_zones = ["eu-west-1a", "eu-west-1b"]
 #   security_groups = ["${aws_security_group.virus_scaner_staging_lb_security_group.id}"]
 #   cross_zone_load_balancing = true
 
@@ -377,7 +383,7 @@ resource "aws_s3_bucket" "staging_aws_bucket" {
 # Configure Auto Scaling group
 # resource "aws_autoscaling_group" "virus_scanner_staging_autoscaling_group" {
 #   name = "virus_scanner_staging_autoscaling_group"
-#   availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+#   availability_zones = ["eu-west-1a", "eu-west-1b"]
 #   max_size = 1
 #   min_size = 1
 #   health_check_grace_period = 300
