@@ -8,9 +8,9 @@ provider "aws" {
 # EC-2 instances access over SSH
 resource "aws_security_group" "staging_web_security_group" {
   name = "StagingWebServerSG"
-  description = "Allow SSH only from Bitzesty IP range (STAGING)"
+  description = "Allow SSH only from Bit Zesty IP range (STAGING)"
 
-  # SSH access from Bitzesty IP range only
+  # SSH access from Bit Zesty IP range only
   ingress {
     from_port = 22
     to_port = 22
@@ -44,17 +44,16 @@ resource "aws_security_group" "staging_web_http_security_group" {
 # LOAD BALANCER security group with access over HTTP/ HTTPS
 resource "aws_security_group" "staging_lb_security_group" {
   name = "StagingLoadBalancerSG"
-  description = "Allow HTTP, HTTPS inbound traffic from Cloudfare only allow all outbound traffic"
+  description = "Allow HTTP, HTTPS inbound traffic from Cloudflare only allow all outbound traffic"
 
-  # Cloudfare IPS: https://www.cloudflare.com/ips
+  # Cloudflare IPS: https://www.cloudflare.com/ips
 
-  # HTTP access from Cloudfare
+  # HTTP access from Cloudflare
   ingress {
     from_port = 80
     to_port = 80
     protocol = "tcp"
     cidr_blocks = [
-      "162.13.181.0/24", # Bitzesty's IP range
       "199.27.128.0/21"
       "173.245.48.0/20"
       "103.21.244.0/22"
@@ -72,13 +71,12 @@ resource "aws_security_group" "staging_lb_security_group" {
     ]
   }
 
-  # HTTPS access from Cloudfare
+  # HTTPS access from Cloudflare
   ingress {
     from_port = 443
     to_port = 443
     protocol = "tcp"
     cidr_blocks = [
-      "162.13.181.0/24", # Bitzesty's IP range
       "199.27.128.0/21"
       "173.245.48.0/20"
       "103.21.244.0/22"
@@ -132,7 +130,7 @@ resource "aws_security_group" "staging_eccluster_security_group" {
 resource "aws_elb" "staging_load_balancer" {
   name = "StagingLoadBalancer"
 
-  availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  availability_zones = ["eu-west-1a", "eu-west-1b"]
   security_groups = ["${aws_security_group.staging_lb_security_group.id}"]
   cross_zone_load_balancing = true
 
@@ -141,6 +139,14 @@ resource "aws_elb" "staging_load_balancer" {
     instance_protocol = "http"
     lb_port = 80
     lb_protocol = "http"
+  }
+
+  listener {
+    instance_port = 443
+    instance_protocol = "http"
+    lb_port = 443
+    lb_protocol = "https"
+    ssl_certificate_id = "arn:aws:iam::081077294140:server-certificate/staging.queens-awards-enterprise.service.gov.uk"
   }
 
   health_check {

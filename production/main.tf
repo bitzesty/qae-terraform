@@ -106,15 +106,13 @@ resource "aws_elb" "production_load_balancer" {
     lb_protocol = "http"
   }
 
-  # SSL support
-  # Uncomment it once SSL certs will be ready
-  # listener {
-  #   instance_port = 443
-  #   instance_protocol = "https"
-  #   lb_port = 443
-  #   lb_protocol = "https"
-  #   ssl_certificate_id = "arn:aws:iam::.......com"
-  # }
+  listener {
+    instance_port = 443
+    instance_protocol = "https"
+    lb_port = 443
+    lb_protocol = "https"
+    ssl_certificate_id = "arn:aws:iam::081077294140:server-certificate/queens-awards-enterprise.service.gov.uk"
+  }
 
   health_check {
     healthy_threshold = 10
