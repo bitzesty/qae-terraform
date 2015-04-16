@@ -95,7 +95,7 @@ resource "aws_security_group" "production_eccluster_security_group" {
 resource "aws_elb" "production_load_balancer" {
   name = "ProductionLoadBalancer"
 
-  availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  availability_zones = ["eu-west-1a", "eu-west-1b"]
   security_groups = ["${aws_security_group.production_lb_security_group.id}"]
   cross_zone_load_balancing = true
 
@@ -127,8 +127,8 @@ resource "aws_elb" "production_load_balancer" {
 resource "aws_db_subnet_group" "production_db_subnet_group" {
   name = "production_db_subnet_group"
   description = "Production RDS group of subnets"
-  # eu-west-1a, eu-west-1b, eu-west-1c
-  subnet_ids = ["subnet-f4c17e83", "subnet-75a7772c", "subnet-0800976d"]
+  # eu-west-1a, eu-west-1b
+  subnet_ids = ["subnet-f4c17e83", "subnet-75a7772c"]
 }
 
 # Creating RDS instance
@@ -174,7 +174,7 @@ resource "aws_launch_configuration" "production_launch_configuration" {
 # Configure Auto Scaling group
 resource "aws_autoscaling_group" "production_autoscaling_group" {
   name = "production_autoscaling_group"
-  availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  availability_zones = ["eu-west-1a", "eu-west-1b"]
   max_size = 3
   min_size = 2
   health_check_grace_period = 300
@@ -288,8 +288,8 @@ resource "aws_s3_bucket" "production_aws_bucket" {
 # resource "aws_db_subnet_group" "virus_scanner_production_db_subnet_group" {
 #   name = "virus_scanner_production_db_subnet_group"
 #   description = "Virus Scanner Production RDS group of subnets"
-#   # eu-west-1a, eu-west-1b, eu-west-1c
-#   subnet_ids = ["subnet-f4c17e83", "subnet-75a7772c", "subnet-0800976d"]
+#   # eu-west-1a, eu-west-1b
+#   subnet_ids = ["subnet-f4c17e83", "subnet-75a7772c"]
 # }
 
 # VirusScanner RDS instance
@@ -316,7 +316,7 @@ resource "aws_s3_bucket" "production_aws_bucket" {
 # resource "aws_elb" "virus_scaner_production_load_balancer" {
 #   name = "VirusScannerProductionLoadBalancer"
 
-#   availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+#   availability_zones = ["eu-west-1a", "eu-west-1b"]
 #   security_groups = ["${aws_security_group.virus_scaner_production_lb_security_group.id}"]
 #   cross_zone_load_balancing = true
 
@@ -362,7 +362,7 @@ resource "aws_s3_bucket" "production_aws_bucket" {
 # # Configure Auto Scaling group
 # resource "aws_autoscaling_group" "virus_scanner_production_autoscaling_group" {
 #   name = "virus_scanner_production_autoscaling_group"
-#   availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+#   availability_zones = ["eu-west-1a", "eu-west-1b"]
 #   max_size = 1
 #   min_size = 1
 #   health_check_grace_period = 300
