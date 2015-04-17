@@ -27,7 +27,7 @@ variable "user_data" {
 variable "virus_scanner_aws_ami" {
   # TODO: replace me with AMI prepared by Packer from
   # https://github.com/bitzesty/qae-ansible
-  default = "ami-394ecc4e"
+  default = "ami-3199f946"
 }
 variable "virus_scanner_instance_type" {
   default = "m1.small"

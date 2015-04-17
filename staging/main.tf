@@ -148,7 +148,7 @@ resource "aws_elb" "staging_load_balancer" {
     instance_protocol = "http"
     lb_port = 443
     lb_protocol = "https"
-    ssl_certificate_id = "arn:aws:iam::081077294140:server-certificate/staging.queens-awards-enterprise.service.gov.uk"
+    ssl_certificate_id = "arn:aws:iam::081077294140:server-certificate/queens-awards-enterprise.service.gov.uk"
   }
 
   health_check {
@@ -443,4 +443,9 @@ resource "aws_instance" "virus_scanner_instance" {
   tags {
     Name = "StagingVirusScanner"
   }
+}
+
+resource "aws_eip" "lb" {
+  instance = "${aws_instance.virus_scanner_instance.id}"
+  vpc = true
 }
