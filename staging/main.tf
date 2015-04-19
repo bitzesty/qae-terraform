@@ -155,7 +155,7 @@ resource "aws_elb" "staging_load_balancer" {
     healthy_threshold = 10
     unhealthy_threshold = 5
     timeout = 5
-    target = "HTTP:80/healthcheck"
+    target = "HTTPS:443/healthcheck"
     interval = 300
   }
 }

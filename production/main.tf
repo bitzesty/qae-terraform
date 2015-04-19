@@ -118,7 +118,7 @@ resource "aws_elb" "production_load_balancer" {
     healthy_threshold = 10
     unhealthy_threshold = 2
     timeout = 5
-    target = "HTTP:80/healthcheck"
+    target = "HTTPS:443/healthcheck"
     interval = 30
   }
 }
