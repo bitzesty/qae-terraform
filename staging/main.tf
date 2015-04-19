@@ -256,7 +256,7 @@ resource "aws_security_group" "virus_scanner_staging_lb_security_group" {
 resource "aws_elb" "virus_scanner_staging_load_balancer" {
   name = "VirusScannerStagingLoadBalancer"
 
-  availability_zones = ["eu-west-1a", "eu-west-1b"]
+  availability_zones = ["eu-west-1a"]
   security_groups = ["${aws_security_group.virus_scanner_staging_lb_security_group.id}"]
   cross_zone_load_balancing = true
 
@@ -292,7 +292,7 @@ resource "aws_launch_configuration" "virus_scanner_staging_launch_configuration"
 #  Configure Auto Scaling (EU-West-1a | EU-West-1b) group
 resource "aws_autoscaling_group" "virus_scanner_staging_autoscaling_group" {
   name = "virus_scanner_staging_autoscaling_group"
-  availability_zones = ["eu-west-1a", "eu-west-1b"]
+  availability_zones = ["eu-west-1a"]
   max_size = 1
   min_size = 1
   health_check_grace_period = 300
