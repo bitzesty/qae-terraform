@@ -145,7 +145,7 @@ resource "aws_elb" "staging_load_balancer" {
 
   listener {
     instance_port = 443
-    instance_protocol = "http"
+    instance_protocol = "https"
     lb_port = 443
     lb_protocol = "https"
     ssl_certificate_id = "arn:aws:iam::081077294140:server-certificate/queens-awards-enterprise.service.gov.uk"
