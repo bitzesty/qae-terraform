@@ -247,7 +247,10 @@ resource "aws_security_group" "virus_scanner_staging_lb_security_group" {
     from_port = 80
     to_port = 80
     protocol = "tcp"
-    security_groups = ["${aws_security_group.staging_lb_security_group.id}"]
+    cidr_blocks = ["0.0.0.0/0"]
+    # This one doesn't work - need to fix it when we will have time
+    # For now access from anythere
+    # security_groups = ["${aws_security_group.staging_lb_security_group.id}"]
   }
 }
 
