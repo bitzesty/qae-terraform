@@ -7,7 +7,7 @@ provider "aws" {
 # SECURITY GROUPS
 # EC-2 instances access over SSH
 resource "aws_security_group" "staging_web_security_group" {
-  name = "StagingWebServerSSHSG"
+  name = "StagingWebServerSG"
   description = "Allow SSH only from Bit Zesty IP range (STAGING)"
 
   # SSH access from Bit Zesty IP range only

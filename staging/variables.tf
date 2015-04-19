@@ -19,9 +19,6 @@ variable "postgres_password" {}
 variable "ec2_instance_type" {
   default = "t2.medium"
 }
-variable "user_data" {
-  default = "./../settings/user_data.sh"
-}
 
 # VIRUS SCANNER VARIABLES
 variable "virus_scanner_aws_ami" {
