@@ -157,11 +157,11 @@ resource "aws_db_subnet_group" "production_db_subnet_group" {
 # Creating RDS instance
 resource "aws_db_instance" "production_rds_instance" {
   identifier = "productionrdsinstance"
-  allocated_storage = 10
   storage_type = "gp2" # (general purpose SSD)
+  allocated_storage = 100
   engine = "postgres"
   engine_version = "9.3.5"
-  instance_class = "db.t2.micro"
+  instance_class = "db.m3.large"
   name = "qae"
   username = "qae"
   password = "${var.postgres_password}"
@@ -170,6 +170,7 @@ resource "aws_db_instance" "production_rds_instance" {
   parameter_group_name = "default.postgres9.3"
 
   multi_az = true
+  storage_encrypted = true
 }
 
 # Create Launch Configuration
