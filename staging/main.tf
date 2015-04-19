@@ -207,15 +207,29 @@ resource "aws_launch_configuration" "staging_launch_configuration" {
   # user_data = "${file(var.user_data)}"
 }
 
-#  Configure Auto Scaling group
+#  Configure Auto Scaling EU-West-1a group
 resource "aws_autoscaling_group" "staging_autoscaling_group" {
   name = "staging_autoscaling_group"
-  availability_zones = ["eu-west-1a", "eu-west-1b"]
-  max_size = 3
-  min_size = 2
+  availability_zones = ["eu-west-1a"]
+  max_size = 1
+  min_size = 1
   health_check_grace_period = 300
   health_check_type = "ELB"
-  desired_capacity = 2
+  desired_capacity = 1
+  force_delete = true
+  launch_configuration = "${aws_launch_configuration.staging_launch_configuration.id}"
+  load_balancers = ["${aws_elb.staging_load_balancer.name}"]
+}
+
+#  Configure Auto Scaling EU-West-1b group
+resource "aws_autoscaling_group" "staging_autoscaling_group" {
+  name = "staging_autoscaling_group"
+  availability_zones = ["eu-west-1b", "eu-west-1c"]
+  max_size = 1
+  min_size = 1
+  health_check_grace_period = 300
+  health_check_type = "ELB"
+  desired_capacity = 1
   force_delete = true
   launch_configuration = "${aws_launch_configuration.staging_launch_configuration.id}"
   load_balancers = ["${aws_elb.staging_load_balancer.name}"]
@@ -227,7 +241,9 @@ resource "aws_s3_bucket" "staging_aws_bucket" {
   acl = "private"
 }
 
+#############################
 # VIRUS SCANNER CONFIGURATION
+#############################
 
 # Virus scanner security group to access the instances over SSH
 # resource "aws_security_group" "virus_scanner_staging_ssh_security_group" {
