@@ -17,7 +17,7 @@ variable "aws_ami" {
 }
 variable "postgres_password" {}
 variable "ec2_instance_type" {
-  default = "t2.medium"
+  default = "m3.large"
 }
 
 # VIRUS SCANNER VARIABLES

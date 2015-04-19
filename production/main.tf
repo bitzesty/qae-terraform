@@ -258,7 +258,7 @@ resource "aws_security_group" "virus_scanner_production_lb_security_group" {
 
 # LOAD BALANCER
 resource "aws_elb" "virus_scanner_production_load_balancer" {
-  name = "VirusScannerProductionLoadBalancer"
+  name = "VScannerProductionLoadBalancer"
 
   availability_zones = ["eu-west-1a"]
   security_groups = ["${aws_security_group.virus_scanner_production_lb_security_group.id}"]
