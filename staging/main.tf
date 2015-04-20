@@ -168,8 +168,6 @@ resource "aws_db_instance" "staging_rds_instance" {
   vpc_security_group_ids = ["${aws_security_group.staging_db_security_group.id}"]
   db_subnet_group_name = "${aws_db_subnet_group.staging_db_subnet_group.id}"
   parameter_group_name = "default.postgres9.3"
-
-  multi_az = true
 }
 
 # Create Launch Configuration
