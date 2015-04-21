@@ -78,7 +78,7 @@ $ terraform plan -var 'key_name=qae_staging' -var 'key_path=./../ssh_keys/qae_st
 ```
 Production:
 ```
-$ terraform plan -var 'key_name=qae_production' -var 'key_path=./../ssh_keys/qae_production.pem'
+$ terraform plan -var 'key_name=qae_production_release' -var 'key_path=./../ssh_keys/qae_production_release.pem'
 ```
 
 #### 8) Build Infrastructure

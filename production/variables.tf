@@ -13,7 +13,7 @@ variable "aws_region" {
 
 # Ubuntu Server 14.04 LTS (HVM), provisioned by CHEF scripts
 variable "aws_ami" {
-  default = "ami-258fec52"
+  default = "ami-bb3a58cc"
 }
 variable "postgres_password" {}
 variable "ec2_instance_type" {

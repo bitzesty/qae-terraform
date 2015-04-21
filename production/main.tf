@@ -155,7 +155,7 @@ resource "aws_db_subnet_group" "production_db_subnet_group" {
 }
 
 # Creating RDS instance
-resource "aws_db_instance" "production_rds_instance" {
+resource "aws_db_instance" "production_rdsinstance" {
   identifier = "productionrdsinstance"
   storage_type = "gp2" # (general purpose SSD)
   allocated_storage = 100
@@ -183,8 +183,8 @@ resource "aws_launch_configuration" "production_launch_configuration" {
     "${aws_security_group.production_web_http_security_group.name}"
   ]
 
-  # The name of our SSH keypair we created via aws cli
-  key_name = "${var.key_name}"
+  # # The name of our SSH keypair we created via aws cli
+  # key_name = "${var.key_name}"
 }
 
 #  Configure Auto Scaling (EU-West-1a | EU-West-1b) group
@@ -290,7 +290,7 @@ resource "aws_launch_configuration" "virus_scanner_production_launch_configurati
     "${aws_security_group.virus_scanner_production_http_security_group.name}"
   ]
 
-  key_name = "${var.key_name}"
+  # key_name = "${var.key_name}"
 }
 
 #  Configure Auto Scaling (EU-West-1a | EU-West-1b) group
