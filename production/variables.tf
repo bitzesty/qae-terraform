@@ -22,7 +22,7 @@ variable "ec2_instance_type" {
 
 # VIRUS SCANNER VARIABLES
 variable "virus_scanner_aws_ami" {
-  default = "ami-5da23a2a"
+  default = "ami-33254844"
 }
 variable "virus_scanner_instance_type" {
   default = "m1.small"
