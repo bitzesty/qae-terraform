@@ -13,7 +13,7 @@ variable "aws_region" {
 
 # Ubuntu Server 14.04 LTS (HVM), provisioned by CHEF scripts
 variable "aws_ami" {
-  default = "ami-b14c2fc6"
+  default = "ami-6928451e"
 }
 variable "postgres_password" {}
 variable "ec2_instance_type" {
@@ -22,7 +22,7 @@ variable "ec2_instance_type" {
 
 # VIRUS SCANNER VARIABLES
 variable "virus_scanner_aws_ami" {
-  default = "ami-1940236e"
+  default = "ami-972f42e0"
 }
 variable "virus_scanner_instance_type" {
   default = "m1.small"
