@@ -134,7 +134,8 @@ resource "aws_elb" "production_load_balancer" {
     instance_protocol = "https"
     lb_port = 443
     lb_protocol = "https"
-    ssl_certificate_id = "arn:aws:iam::081077294140:server-certificate/queens-awards-enterprise.service.gov.uk"
+    # This is old ssl_certificate_id = "arn:aws:iam::081077294140:server-certificate/queens-awards-enterprise.service.gov.uk"
+    ssl_certificate_id = "arn:aws:iam::081077294140:server-certificate/production"
   }
 
   health_check {
