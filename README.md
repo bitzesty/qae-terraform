@@ -248,6 +248,20 @@ production_default
 
 * Need to setup local env before you start [SETUP GUIDE](https://github.com/bitzesty/qae-terraform#step-1-setup-terraform)
 
+##### IMPORTANT NOTES:
+
+###### * All private variables are located in terraform.tfvars file (which is in .gitignore).
+
+###### * Terraform saves the state of your infrastructure in a terraform.tfstate and terraform.tfstate.backup files (They are in .gitignore).
+
+###### * It's always required to have latest version of terraform.tfvars, terraform.tfstate and terraform.tfstate.backup files in <ENVIRONMENT> folder (staging/ or production/) if you run provisioning of existing AWS infrastructure (not from scratch).
+
+###### * If latest Terraform provision of AWS infrastructure was runned by another person (not by you) - You should ask him to provide you following files and put them in related <ENVIRONMENT> folder (staging/ or production/):
+
+* terraform.tfstate
+* terraform.tfstate.backup
+* terraform.tfvars
+
 #### Update Terraform scripts with new AWS AMI ids
 
 
