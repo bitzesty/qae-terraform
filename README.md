@@ -167,60 +167,35 @@ If you want to refresh information about your Infrastructure, use:
 $ terraform refresh -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
 ```
 
+#### STEP 7: Adding of other AWS Services
+
+* Current Terraform doesn't allow to setup AWS SQS.
+  Probably, it would be added in future
+  So, we need to add it manually.
+
+##### Setup AWS SQS (Message Queue)
+
+* We user AWS SQS as a Message Queue for background jobs and delayed mailers
+  [More Information](http://aws.amazon.com/documentation/sqs/)
+
+###### 1: Visit https://eu-west-1.console.aws.amazon.com/sqs/home?region=eu-west-1
+
+###### 1: Add queues
+
+* Add 2 queues per ENV:
+
+```
+staging_mailers
+staging_default
+production_mailers
+production_default
+```
 
 ## Provision of existing AWS infrastructure
 
 * Need to setup local env before you start [SETUP GUIDE]()
 
 #### Update Terraform scripts with new AWS AMI ids
-
-
-
-
-
-
-#### 9) Review Infrastructure
-
-
-#### 10) ADDING OF OTHER AWS SERVICES
-
-Currently Terraform doesn't allow to setup AWS ElasticCache and AWS SQS.
-So, we need to add it manually.
-
-##### 10-1) Setup AWS SQS (Message Queue)
-
-1) Visit https://eu-west-1.console.aws.amazon.com/sqs/home?region=eu-west-1#
-
-2) Add 2 queues per ENV:
-```
-- staging_mailers
-- staging_default
-- production_mailers
-- production_default
-```
-
-
-#### 11) Then you can start CHEF provision of instances
-
-##### NOTE 1
-You need to do CHEF provision only in 2 cases:
-1) if you starting with clean Ubuntu AMI
-2) if you need to make some global changes (install some packeges, updated configuration so on) - not deploys
-
-##### NOTE 2
-By default we already have prepared AMI with all necessary packages and configuration
-
-##### 11-1) Add your ssh key to server, which you are gonna to provision with CHEF
-
-```
-# test connection by .pem key
-ssh -i ssh_keys/qae_<ENVIRONMENT>.pem ubuntu@<EC2 INSTANCE IP>
-
-# add your own ssh key
-cat ~/.ssh/id_rsa.pub | ssh -i ssh_keys/qae_<ENVIRONMENT>.pem ubuntu@<EC2 INSTANCE IP> 'cat >> ~/.ssh/authorized_keys'
-```
-
-##### 11-2) [QAE CHEF PROVISION GUIDE](https://github.com/bitzesty/qae-chef)
 
 
 
