@@ -326,7 +326,11 @@ $ terraform apply -var 'key_name=qae_production_release' -var 'key_path=./../ssh
 
 ## Prepare new AWS AMI image from one of provisioned AWS EC-2 instances
 
-#### STEP 1: Update Terraform variables with new AWS AMI id
+#### STEP 1: Create new AWS AMI on aws.amazon.com, from existing EC-2 instance
+
+[AWS GUIDE](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html)
+
+#### STEP 2: Update Terraform variables with new AWS AMI id
 
 You can updated AWS AMI id for QAE app in ENVIRONMENT/variables.tf
 
@@ -337,11 +341,11 @@ variable "aws_ami" {
 }
 ```
 
-#### STEP 2: [Refresh information about AWS insfrastructure](https://github.com/bitzesty/qae-terraform#step-3-refresh-information-about-aws-insfrastructure)
+#### STEP 3: [Refresh information about AWS insfrastructure](https://github.com/bitzesty/qae-terraform#step-3-refresh-information-about-aws-insfrastructure)
 
-#### STEP 3: [Make a Terraform Plan](https://github.com/bitzesty/qae-terraform#step-4-make-a-terraform-plan-1)
+#### STEP 4: [Make a Terraform Plan](https://github.com/bitzesty/qae-terraform#step-4-make-a-terraform-plan-1)
 
-#### STEP 4: [Provision AWS Infrastructure](https://github.com/bitzesty/qae-terraform#step-5-provision-aws-infrastructure-1)
+#### STEP 5: [Provision AWS Infrastructure](https://github.com/bitzesty/qae-terraform#step-5-provision-aws-infrastructure-1)
 
 
 
