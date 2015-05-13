@@ -72,7 +72,9 @@ $ cd production
 
 #### STEP 3: Setup variables
 
-* Terraform stores variables in terraform.tfvars file, which is in .gitignore
+##### Setup terraform.tfvars file
+
+Terraform stores variables in terraform.tfvars file, which is in .gitignore
 
 You can use terraform.tfvars.example.
 It looks like this:
@@ -81,9 +83,12 @@ access_key = "<AWS_ACCESS_KEY>"
 secret_key = "<AWS_SECRET_KEY>"
 aws_region = "eu-west-1"
 postgres_password = ""
+load_balancer_ssl_cert_id = ""
 ```
 
-* List of possible variables and it's default values are in variables.tf. For example:
+##### Setup variables.tf file:
+
+List of possible variables and it's default values are in variables.tf. For example:
 
 ```
 variable "aws_region" {
@@ -91,8 +96,59 @@ variable "aws_region" {
   default = "eu-west-1" # Ireland is default
 }
 ```
+
 This example sets default region ("eu-west-1") and adds description for this variable.
 Default value of this variable can be overriden in terraform.tfvars file.
+
+Most important variables:
+
+```
+aws_ami - setting AWS AMI ubuntu image id for QAE app EC-2 instances
+
+# For example:
+variable "aws_ami" {
+  default = "ami-bb3a58cc"
+}
+```
+
+```
+ec2_instance_type - setting type of EC-2 instance for QAE app
+
+# For example:
+variable "ec2_instance_type" {
+  default = "m3.large"
+}
+```
+
+```
+load_balancer_ssl_cert_id - setting SSL Certificate of Load Balancer for QAE app
+
+# For example:
+variable "load_balancer_ssl_cert_id" {}
+
+* has no default value, so you need to specify it at terraform.tfvars file
+```
+
+```
+virus_scanner_aws_ami - setting AWS AMI ubuntu image id for Virus Scanner Engine EC-2 instances
+
+# For example:
+variable "virus_scanner_aws_ami" {
+  default = "ami-33254844"
+}
+```
+
+```
+virus_scanner_instance_type - setting type of EC-2 instance for Virus Scanner Engine
+
+# For example:
+variable "virus_scanner_instance_type" {
+  default = "m1.small"
+}
+```
+
+###### * It's worth to double check all used variables in order to make sure that you are going to provision right AWS infrastructure
+
 
 #### STEP 4: Make a Terraform Plan
 
