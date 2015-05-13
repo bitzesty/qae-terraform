@@ -72,23 +72,9 @@ $ cd production
 
 #### STEP 3: Setup variables
 
-##### Setup terraform.tfvars file
-
-Terraform stores variables in terraform.tfvars file, which is in .gitignore
-
-You can use terraform.tfvars.example.
-It looks like this:
-```
-access_key = "<AWS_ACCESS_KEY>"
-secret_key = "<AWS_SECRET_KEY>"
-aws_region = "eu-west-1"
-postgres_password = ""
-load_balancer_ssl_cert_id = ""
-```
-
 ##### Setup variables.tf file:
 
-List of possible variables and it's default values are in variables.tf. For example:
+List of possible variables and it's default values declarated in variables.tf. For example:
 
 ```
 variable "aws_region" {
@@ -149,6 +135,20 @@ variable "virus_scanner_instance_type" {
 
 ###### * It's worth to double check all used variables in order to make sure that you are going to provision right AWS infrastructure
 
+##### Setup terraform.tfvars file
+
+All private variables we store in terraform.tfvars file, which is in .gitignore
+You can use terraform.tfvars.example.
+It looks like this:
+```
+access_key = "<AWS_ACCESS_KEY>"
+secret_key = "<AWS_SECRET_KEY>"
+aws_region = "eu-west-1"
+postgres_password = ""
+load_balancer_ssl_cert_id = ""
+```
+
+* This file overrides default values in variables.tf
 
 #### STEP 4: Make a Terraform Plan
 
