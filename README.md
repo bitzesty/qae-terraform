@@ -41,30 +41,27 @@ Default output format [None]:
 $ terraform init git@github.com:bitzesty/qae-terraform.git
 ```
 
+
+
 ## Provision AWS infrastructure from scratch
 
-* Need to setup local env at first [SETUP GUIDE]()
+* Need to setup local env before you start [SETUP GUIDE]()
 
+#### STEP 1: Generate new AWS key pair
 
-## Provision of existing AWS infrastructure
-
-* Need to setup local env at first [SETUP GUIDE]()
-
-#### Update Terraform scripts with new AWS AMI ids
-
-
-
-
-#### 4) Generate new AWS key pair (or if you already have one uploaded to AWS EC-2 -> Key Pairs - then you can just put .pem to ssh_keys directory and skip this step)
-
+Generate AWS key pair via awscli
 ```
-$ aws ec2 --region <YOUR REGION (ex: eu-west-1)> create-key-pair --key-name qae_<ENVIRONMENT> | jq -r ".KeyMaterial" > ssh_keys/qae_<ENVIRONMENT>.pem
+$ aws ec2 --region eu-west-1 create-key-pair --key-name qae_<ENVIRONMENT> | jq -r ".KeyMaterial" > ssh_keys/qae_<ENVIRONMENT>.pem
+```
 
+Add proper permissions to generate .pem key
+```
 $ chmod 400 ssh_keys/qae_<ENVIRONMENT>.pem
 ```
-New ssh pem file will be generated to ssh_keys/qae_<ENVIRONMENT>.pem.
 
-#### 5) Go to environment folder
+* Generated pem key would be saved to ssh_keys/qae_<ENVIRONMENT>.pem.
+
+#### STEP 2: Go to target environment folder
 
 ```
 cd staging
@@ -72,7 +69,10 @@ cd staging
 cd production
 ```
 
-#### 6) Setup necessary variables in /<ENVIRONMENT>/terraform.tfvars
+#### STEP 3: Setup variables
+
+* Terraform saves  terraform.tfvars
+
 You can user example file terraform.tfvars.example
 ```
 access_key = "<AWS_ACCESS_KEY>"
@@ -92,6 +92,19 @@ as new instances do not response on healthy checks.
 
 ##### NOTE 2:
 By default: we use own already provisioned by CHEF AMI image
+
+
+
+## Provision of existing AWS infrastructure
+
+* Need to setup local env before you start [SETUP GUIDE]()
+
+#### Update Terraform scripts with new AWS AMI ids
+
+
+
+
+
 
 #### 7) Make a Plan to see how Terraform intends to build the resources you declared.
 
@@ -124,7 +137,6 @@ The output above is truncated, but Terraform did a few things for us here:
 
 - Created a security group allowing SSH and HTTP/HTTPS access
 - Created a security group allowing access to RDS Postgres instance for EC-2 instances
-- Created a secutiry group allowing access to ElasticCache Redis cluster for EC-2 instances
 - Created 2 EC2 instances from the Ubuntu 14.10 AMI
 - Created an ELB instance and used the our EC2 instances as its backend
 - Created Launch Configuration and Auto-scaling group with (2 min and 3 max instances)
@@ -154,68 +166,6 @@ So, we need to add it manually.
 - production_default
 ```
 
-##### 10-2) Setup AWS Elastic Cache
-
-1) Visit https://eu-west-1.console.aws.amazon.com/elasticache/home?region=eu-west-1#
-
-2) Setup new Elastic Cache Redis Cluster
-
-Step 1: Select Engine
-  - Redis
-
-Step 2: Specify Cluster Details
-
-For staging:
-  - Cluster Name: stagingrediscluster
-  - Node Type: cache.t2.micro
-    * Make sure that you setup in accordance with "QAE server setup" google doc requirements
-  - untick "Enable Replication" for staging and tick it for production
-  * other fields leave in defaults
-
-For production:
-  - "Enable Replication" and "Multi-AZ" should be selected
-  - Node Type: cache.m1.small
-    * Make sure that you setup in accordance with "QAE server setup" google doc requirements
-  - Replication Group Name: productionec
-  - Replication Group Description: Production ECCluster replication group
-  - Number of Read Replicas: 1
-  * other fields leave in defaults
-
-Step 3:Configure Advanced Settings
-
-For staging:
-  - VPC Security Group(s) select "StagingECRedisClusterSG" (which was created by Terraform)
-
-For production :
-  - VPC Security Group(s) select "ProductionECRedisClusterSG" (which was created by Terraform)
-  * other fields leave in defaults
-
-3) Put port and host to related [environment (staging / production) node](https://github.com/bitzesty/qae-chef/blob/master/nodes)
-in CHEF REPO.
-
-For staging:
-```
-"env": {
-  ...
-  "AWS_ELASTIC_CACHE_REDIS_CLUSTER_PORT": "6379",
-  "AWS_ELASTIC_CACHE_REDIS_CLUSTER_HOST": "stagingrediscluster.XXXXXX.amazonaws.com"
-},
-```
-
-For production:
-We need to specify Primary Endpoint for Replication Group
-You can find it in:
-  https://eu-west-1.console.aws.amazon.com/elasticache/home?region=eu-west-1
-  "Replication Groups" -> "productionec" -> find "Primary Endpoint" in details
-
-```
-"env": {
-  ...
-  "AWS_ELASTIC_CACHE_REDIS_CLUSTER_PORT": "6379",
-  "AWS_ELASTIC_CACHE_REDIS_CLUSTER_HOST": "productionec.XXXXXXXXXXX.amazonaws.com"
-},
-```
-More info about [Multi-AZ with Redis Replication Groups](http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/AutoFailover.html)
 
 #### 11) Then you can start CHEF provision of instances
 
