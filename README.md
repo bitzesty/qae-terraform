@@ -124,9 +124,9 @@ variable "ec2_instance_type" {
 load_balancer_ssl_cert_id - setting SSL Certificate of Load Balancer for QAE app
 
 # For example:
-variable "load_balancer_ssl_cert_id" {}
-
-* has no default value, so you need to specify it at terraform.tfvars file
+variable "load_balancer_ssl_cert_id" {
+  default = "arn:aws:iam::081077294140:server-certificate/production"
+}
 ```
 
 ```
