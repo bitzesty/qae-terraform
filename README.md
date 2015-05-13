@@ -324,7 +324,7 @@ Production:
 $ terraform apply -var 'key_name=qae_production_release' -var 'key_path=./../ssh_keys/qae_production_release.pem'
 ```
 
-## Prepare new AWS AMI image from one of provisioned AWS EC-2 instances
+## Prepare new AWS AMI image from existing AWS EC-2 instance
 
 #### STEP 1: Create new AWS AMI on aws.amazon.com, from existing EC-2 instance
 
