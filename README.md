@@ -46,13 +46,16 @@ $ terraform init git@github.com:bitzesty/qae-terraform.git
 ## Provision AWS infrastructure from scratch
 
 * Need to setup local env before you start [SETUP GUIDE]()
+* All operations with Terraform should be executed with providing AWS key pair,
+  so that we need to generate AWS key pair at first.
 
 #### STEP 1: Generate new AWS key pair
 
-Generate AWS key pair via awscli
+Generate AWS key pair via awscli (This command will generate and upload new key pair to AWS)
 ```
 $ aws ec2 --region eu-west-1 create-key-pair --key-name qae_<ENVIRONMENT> | jq -r ".KeyMaterial" > ssh_keys/qae_<ENVIRONMENT>.pem
 ```
+
 
 Add proper permissions to generate .pem key
 ```
@@ -71,28 +74,98 @@ cd production
 
 #### STEP 3: Setup variables
 
-* Terraform saves  terraform.tfvars
+* Terraform saves all variables in terraform.tfvars file, which is in .gitignore
 
-You can user example file terraform.tfvars.example
+You can use terraform.tfvars.example as example.
+It looks like this:
 ```
 access_key = "<AWS_ACCESS_KEY>"
 secret_key = "<AWS_SECRET_KEY>"
 aws_region = "eu-west-1"
 postgres_password = ""
-aws_ami = "<EC2 AMI>" # ami-234ecc54 # Clean Ubuntu 14.10
-ec2_instance_type = "<EC2 INSTANCE TYPE>" # For example: m3.large
-
 ```
 
-##### NOTE 1:
-Enable user_data in main.tf in case if you are using clean AMI images
-without NGINX installed - as AWS Auto-Scaling Group does healthy checks to HTTP 80 port
-and will terminate current instances and populate new
-as new instances do not response on healthy checks.
+* List of possible variables and it's default values are in variables.tf:
 
-##### NOTE 2:
-By default: we use own already provisioned by CHEF AMI image
+```
+variable "aws_region" {
+  description = "AWS region to launch servers."
+  default = "eu-west-1" # Ireland is default
+}
+```
+This example sets default region ("eu-west-1") and adds description for this variable.
+Default value of this variable can be overriden in terraform.tfvars file.
 
+#### STEP 4: Make a Terraform Plan
+
+* NOTE:
+  This command will show you all planned actions.
+  This command don't run provision scripts on your AWS infrastructure, it just displaying
+  all planned actions.
+  It's worth to review output of this command before you will run 'terraform apply'.
+
+```
+$ terraform plan -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
+```
+
+Staging:
+```
+$ terraform plan -var 'key_name=qae_staging' -var 'key_path=./../ssh_keys/qae_staging.pem'
+```
+
+Production:
+```
+$ terraform plan -var 'key_name=qae_production_release' -var 'key_path=./../ssh_keys/qae_production_release.pem'
+```
+
+#### STEP 5: Provision AWS Infrastructure
+
+* NOTE:
+  This command run provision scripts.
+  It's worth to review output of this command before you will run 'terraform apply'.
+
+```
+$ terraform apply -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
+```
+
+Staging:
+```
+$ terraform apply -var 'key_name=qae_staging' -var 'key_path=./../ssh_keys/qae_staging.pem'
+```
+
+Production:
+```
+$ terraform apply -var 'key_name=qae_production_release' -var 'key_path=./../ssh_keys/qae_production_release.pem'
+```
+
+##### NOTES
+
+###### Terraform did a few things here:
+
+* Add bunch of security groups
+* RDS Postgresql instance
+* Private S3 bucket
+* Load Balancer (AWS LB), Launch Configuration and Auto-Scaling Group (AWS ASG) with 2 EC-2 instances from clean from the Ubuntu 14.10 AMI for QAE app
+* Load Balancer (AWS LB), Launch Configuration and Auto-Scaling Group (AWS ASG) with 1 EC-2 instances from clean from the Ubuntu 14.10 AMI for Virus Scanner Engine
+
+###### Terraform saves the state of your infrastructure in a terraform.tfstate and terraform.tfstate.backup files (They are in .gitignore).
+
+
+###### It's always required to have latest version of terraform.tfstate and terraform.tfstate.backup files in <ENVIRONMENT> folder (staging/ or production/) if you run provisioning existing AWS infrastructure (not from scratch).
+
+#### STEP 6: Review Infrastructure
+
+```
+$ terraform show -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
+```
+
+* This command will display output with your AWS infrastructure, based on terraform.tfstate and terraform.tfstate.backup files.
+
+If you want to refresh information about your Infrastructure, use:
+
+```
+$ terraform refresh -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
+```
 
 
 ## Provision of existing AWS infrastructure
@@ -106,48 +179,8 @@ By default: we use own already provisioned by CHEF AMI image
 
 
 
-#### 7) Make a Plan to see how Terraform intends to build the resources you declared.
-
-```
-$ terraform plan -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
-```
-
-Staging:
-```
-$ terraform plan -var 'key_name=qae_staging' -var 'key_path=./../ssh_keys/qae_staging.pem'
-```
-Production:
-```
-$ terraform plan -var 'key_name=qae_production_release' -var 'key_path=./../ssh_keys/qae_production_release.pem'
-```
-
-#### 8) Build Infrastructure
-
-```
-$ terraform apply -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
-```
-
-```
-Outputs:
-
-  address = terraform-example-elb-419196096.us-west-2.elb.amazonaws.com
-```
-
-The output above is truncated, but Terraform did a few things for us here:
-
-- Created a security group allowing SSH and HTTP/HTTPS access
-- Created a security group allowing access to RDS Postgres instance for EC-2 instances
-- Created 2 EC2 instances from the Ubuntu 14.10 AMI
-- Created an ELB instance and used the our EC2 instances as its backend
-- Created Launch Configuration and Auto-scaling group with (2 min and 3 max instances)
-- Created private S3 bucket
-- Printed the ELB public DNS address in the Outputs section
-- Saved the state of your infrastructure in a terraform.tfstate file
-
 #### 9) Review Infrastructure
-```
-$ terraform show
-```
+
 
 #### 10) ADDING OF OTHER AWS SERVICES
 
