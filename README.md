@@ -70,6 +70,8 @@ $ cd staging
 $ cd production
 ```
 
+* All script actions are declarated on related ENVIRONMENT/main.tf file.
+
 #### STEP 3: Setup variables
 
 ##### Setup variables.tf file:
@@ -246,23 +248,85 @@ production_default
 
 ## Provision of existing AWS infrastructure
 
-* Need to setup local env before you start [SETUP GUIDE](https://github.com/bitzesty/qae-terraform#step-1-setup-terraform)
+Need to setup local env before you start [SETUP GUIDE](https://github.com/bitzesty/qae-terraform#step-1-setup-terraform)
 
 ##### IMPORTANT NOTES:
 
-###### * All private variables are located in terraform.tfvars file (which is in .gitignore).
+##### * All private variables are located in terraform.tfvars file (which is in .gitignore).
 
-###### * Terraform saves the state of your infrastructure in a terraform.tfstate and terraform.tfstate.backup files (They are in .gitignore).
+##### * Terraform saves the state provisioned AWS infrastructure in a terraform.tfstate and terraform.tfstate.backup files (They are in .gitignore).
 
-###### * It's always required to have latest version of terraform.tfvars, terraform.tfstate and terraform.tfstate.backup files in <ENVIRONMENT> folder (staging/ or production/) if you run provisioning of existing AWS infrastructure (not from scratch).
+##### * It's always required to have latest version of terraform.tfvars, terraform.tfstate and terraform.tfstate.backup files in <ENVIRONMENT> folder (staging/ or production/) if you run provisioning of existing AWS infrastructure (not from scratch).
 
-###### * If latest Terraform provision of AWS infrastructure was runned by another person (not by you) - You should ask him to provide you following files and put them in related <ENVIRONMENT> folder (staging/ or production/):
+##### * If latest Terraform provision of AWS infrastructure was runned by another person (not by you) - You should ask him to provide you following files and put them in related <ENVIRONMENT> folder (staging/ or production/):
 
 * terraform.tfstate
 * terraform.tfstate.backup
 * terraform.tfvars
 
-#### Update Terraform scripts with new AWS AMI ids
+##### * Double check all variables [SETUP VARIABLES GUIDE](https://github.com/bitzesty/qae-terraform#step-3-setup-variables)
+
+#### STEP 1: Make changes in terraform scripts (If needed)
+
+* It's required to have latest terraform.tfstate and terraform.tfstate.backup before you go ahead!
+
+All script actions are declarated on related ENVIRONMENT/main.tf file.
+
+#### STEP 2: Update variables (If needed)
+
+See [SETUP VARIABLES GUIDE](https://github.com/bitzesty/qae-terraform#step-3-setup-variables)
+
+#### STEP 3: Refresh information about AWS insfrastructure
+
+```
+$ terraform refresh -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
+```
+
+#### STEP 4: Make a Terraform Plan
+
+* NOTE:
+  This command will show you all planned actions.
+  This command don't run provision scripts on your AWS infrastructure, it just displaying
+  all planned actions.
+  It's worth to review output of this command before you will run 'terraform apply'.
+
+```
+$ terraform plan -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
+```
+
+Staging:
+```
+$ terraform plan -var 'key_name=qae_staging' -var 'key_path=./../ssh_keys/qae_staging.pem'
+```
+
+Production:
+```
+$ terraform plan -var 'key_name=qae_production_release' -var 'key_path=./../ssh_keys/qae_production_release.pem'
+```
+
+#### STEP 5: Provision AWS Infrastructure
+
+* NOTE:
+  This command run provision scripts.
+  It's worth to review output of this command before you will run 'terraform apply'.
+
+```
+$ terraform apply -var 'key_name=qae_<ENVIRONMENT>' -var 'key_path=/<ABSOLUTE PATH TO ROOT OF THIS FOLDER>/ssh_keys/qae_<ENVIRONMENT>.pem'
+```
+
+Staging:
+```
+$ terraform apply -var 'key_name=qae_staging' -var 'key_path=./../ssh_keys/qae_staging.pem'
+```
+
+Production:
+```
+$ terraform apply -var 'key_name=qae_production_release' -var 'key_path=./../ssh_keys/qae_production_release.pem'
+```
+
+
+
+
 
 
 
