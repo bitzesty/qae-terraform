@@ -194,6 +194,8 @@ Production:
 $ terraform apply -var 'key_name=qae_production_release' -var 'key_path=./../ssh_keys/qae_production_release.pem'
 ```
 
+* Sometimes 'terraform apply' can take more time (for example on provision of RDS instance) and timing out - in this case best way is to wait a bit and run 'terraform apply' again
+
 ##### NOTES
 
 ###### * Terraform did a few things here:
@@ -323,6 +325,8 @@ Production:
 ```
 $ terraform apply -var 'key_name=qae_production_release' -var 'key_path=./../ssh_keys/qae_production_release.pem'
 ```
+
+* Sometimes 'terraform apply' can take more time (for example on provision of RDS instance) and timing out - in this case best way is to wait a bit and run 'terraform apply' again
 
 ## Prepare new AWS AMI image from existing AWS EC-2 instance
 
