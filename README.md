@@ -1,19 +1,29 @@
-## QAE Terraform scripts
+![Logo](https://raw.githubusercontent.com/bitzesty/qae/master/public/gov.uk_logotype_crown.png) Queen's Awards for Enterprise
+---------------------------
 
-### GETTING STARTED
+"QAE" is the application which powers the application process for the Queen's Awards for Enterprise.
 
-#### 1) Install terraform from https://terraform.io/downloads.html
+## Setup QAE Servers AWS Amazon Infrastructure Guide
 
-#### 2) Setup AWS CLI environment
+This guide uses [Terraform](https://www.terraform.io/docs/index.html).
 
-2.1) [INSTALL AWS CLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html)
+* First of all you need to setup necessary tools on local (Terraform, AWS CLI so on).
 
-2.2) Setup necessary packages for AWS CLI
+## Setup Guide
+
+#### STEP 1: [Setup Terraform](https://terraform.io/downloads.html)
+
+#### STEP 2: Setup AWS CLI environment
+
+##### Install packages
 ```
 $ sudo apt-get install awscli jq
 ```
 
-2.3) Setup aws credentials
+* [More Information](http://docs.aws.amazon.com/cli/latest/userguide/installing.html)
+
+##### Setup AWS credentials
+
 ```
 $ aws configure
 =>
@@ -23,10 +33,27 @@ Default region name [None]: eu-west-1
 Default output format [None]:
 ```
 
-#### 3) Clone app
+* Ask for Guys about <AWS_ACCESS_ID> and <AWS_SECRET_ACCESS_KEY>
+
+#### STEP 3: Setup QAE - Terraform app
+
 ```
 $ terraform init git@github.com:bitzesty/qae-terraform.git
 ```
+
+## Provision AWS infrastructure from scratch
+
+* Need to setup local env at first [SETUP GUIDE]()
+
+
+## Provision of existing AWS infrastructure
+
+* Need to setup local env at first [SETUP GUIDE]()
+
+#### Update Terraform scripts with new AWS AMI ids
+
+
+
 
 #### 4) Generate new AWS key pair (or if you already have one uploaded to AWS EC-2 -> Key Pairs - then you can just put .pem to ssh_keys directory and skip this step)
 
