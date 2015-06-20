@@ -21,7 +21,7 @@ resource "aws_security_group" "bzstaging_web_security_group" {
 # EC-2 instances access over HTTP from anywhere
 resource "aws_security_group" "bzstaging_web_http_security_group" {
   name = "BzStagingWebServerHTTPSG"
-  description = "Allow HTTP, HTTPS inbound traffic from LB only"
+  description = "Allow HTTP inbound traffic from LB only"
 
   ingress {
     from_port = 80
@@ -79,7 +79,7 @@ resource "aws_elb" "bzstaging_load_balancer" {
     healthy_threshold = 10
     unhealthy_threshold = 5
     timeout = 5
-    target = "HTTPS:443/healthcheck"
+    target = "HTTP:80/healthcheck"
     interval = 300
   }
 }
