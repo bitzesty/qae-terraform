@@ -29,6 +29,13 @@ resource "aws_security_group" "bzstaging_web_http_security_group" {
     protocol = "tcp"
     security_groups = ["${aws_security_group.bzstaging_lb_security_group.id}"]
   }
+
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.bzstaging_lb_security_group.id}"]
+  }
 }
 
 # LOAD BALANCER security group with access over HTTP from Cloudflare
@@ -42,6 +49,30 @@ resource "aws_security_group" "bzstaging_lb_security_group" {
   ingress {
     from_port = 80
     to_port = 80
+    protocol = "tcp"
+    cidr_blocks = [
+      "162.13.181.148/24", #Bit Zesty
+      "199.27.128.0/21",
+      "173.245.48.0/20",
+      "103.21.244.0/22",
+      "103.22.200.0/22",
+      "103.31.4.0/22",
+      "141.101.64.0/18",
+      "108.162.192.0/18",
+      "190.93.240.0/20",
+      "188.114.96.0/20",
+      "197.234.240.0/22",
+      "198.41.128.0/17",
+      "162.158.0.0/15",
+      "104.16.0.0/12",
+      "172.64.0.0/13"
+    ]
+  }
+
+  # HTTPS access from Cloudflare
+  ingress {
+    from_port = 443
+    to_port = 443
     protocol = "tcp"
     cidr_blocks = [
       "162.13.181.148/24", #Bit Zesty
@@ -95,11 +126,19 @@ resource "aws_elb" "bzstaging_load_balancer" {
     lb_protocol = "http"
   }
 
+  listener {
+    instance_port = 443
+    instance_protocol = "https"
+    lb_port = 443
+    lb_protocol = "https"
+    ssl_certificate_id = "${var.load_balancer_ssl_cert_id}"
+  }
+
   health_check {
     healthy_threshold = 10
     unhealthy_threshold = 5
     timeout = 5
-    target = "HTTP:80/healthcheck"
+    target = "HTTPS:443/healthcheck"
     interval = 300
   }
 }
