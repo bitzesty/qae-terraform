@@ -5,16 +5,16 @@ provider "aws" {
 }
 
 # SECURITY GROUPS
-# EC-2 instances access over SSH from anywhere
+# EC-2 instances access over SSH
 resource "aws_security_group" "bzstaging_web_security_group" {
   name = "BzStagingWebServerSG"
-  description = "Allow SSH only from Bit Zesty IP range (BZSTAGING)"
+  description = "Allow SSH only from Bit Zesty IP range (STAGING)"
 
   ingress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["162.13.181.148/24"]
   }
 }
 
@@ -31,16 +31,35 @@ resource "aws_security_group" "bzstaging_web_http_security_group" {
   }
 }
 
-# LOAD BALANCER security group with access over HTTP from anywhere
+# LOAD BALANCER security group with access over HTTP from Cloudflare
 resource "aws_security_group" "bzstaging_lb_security_group" {
   name = "BzStagingLoadBalancerSG"
-  description = "Allow HTTP inbound traffic from anywhere"
+  description = "Allow HTTP, HTTPS inbound traffic from Cloudflare only allow all outbound traffic"
 
+  # Cloudflare IPS: https://www.cloudflare.com/ips
+
+  # HTTP access from Cloudflare
   ingress {
     from_port = 80
     to_port = 80
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [
+      "162.13.181.148/24", #Bit Zesty
+      "199.27.128.0/21",
+      "173.245.48.0/20",
+      "103.21.244.0/22",
+      "103.22.200.0/22",
+      "103.31.4.0/22",
+      "141.101.64.0/18",
+      "108.162.192.0/18",
+      "190.93.240.0/20",
+      "188.114.96.0/20",
+      "197.234.240.0/22",
+      "198.41.128.0/17",
+      "162.158.0.0/15",
+      "104.16.0.0/12",
+      "172.64.0.0/13"
+    ]
   }
 }
 
@@ -55,7 +74,8 @@ resource "aws_security_group" "bzstaging_db_security_group" {
     to_port = 5432
     protocol = "tcp"
     security_groups = [
-      "${aws_security_group.bzstaging_web_security_group.id}"
+      "${aws_security_group.bzstaging_web_security_group.id}",
+      "sg-0b6a2c6e"
     ]
   }
 }
