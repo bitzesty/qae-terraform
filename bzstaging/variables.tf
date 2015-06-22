@@ -17,3 +17,4 @@ variable "postgres_password" {}
 variable "ec2_instance_type" {
   default = "t2.small"
 }
+variable "load_balancer_ssl_cert_id" {}
