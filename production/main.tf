@@ -191,9 +191,9 @@ resource "aws_launch_configuration" "production_launch_configuration" {
 resource "aws_autoscaling_group" "production_autoscaling_group" {
   name = "production_autoscaling_group"
   availability_zones = ["eu-west-1a", "eu-west-1b"]
-  max_size = 2
+  max_size = 3 # 2
   min_size = 2
-  health_check_grace_period = 300
+  health_check_grace_period = 600 # 300
   health_check_type = "ELB"
   desired_capacity = 2
   force_delete = true
