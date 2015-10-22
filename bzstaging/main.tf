@@ -14,7 +14,7 @@ resource "aws_security_group" "bzstaging_web_security_group" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["52.19.165.178/24"]
+    cidr_blocks = ["52.19.165.178/32"]
   }
 }
 
@@ -51,7 +51,7 @@ resource "aws_security_group" "bzstaging_lb_security_group" {
     to_port = 80
     protocol = "tcp"
     cidr_blocks = [
-      "52.19.165.178/24", #Bit Zesty
+      "52.19.165.178/32", #Bit Zesty
       "199.27.128.0/21",
       "173.245.48.0/20",
       "103.21.244.0/22",
@@ -75,7 +75,7 @@ resource "aws_security_group" "bzstaging_lb_security_group" {
     to_port = 443
     protocol = "tcp"
     cidr_blocks = [
-      "52.19.165.178/24", #Bit Zesty
+      "52.19.165.178/32", #Bit Zesty
       "199.27.128.0/21",
       "173.245.48.0/20",
       "103.21.244.0/22",
